@@ -1,0 +1,12 @@
+[submodule "gmock-cmake"]
+	path = gmock-cmake
+	url = git://github.com/polysquare/gmock-cmake
+[submodule "cppcheck-target-cmake"]
+	path = cppcheck-target-cmake
+	url = git://github.com/polysquare/cppcheck-target-cmake
+[submodule "veracpp-cmake"]
+	path = veracpp-cmake
+	url = git://github.com/polysquare/veracpp-cmake
+[submodule "gcov-cmake"]
+	path = gcov-cmake
+	url = git://github.com/polysquare/gcov-cmake
