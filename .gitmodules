@@ -10,3 +10,6 @@
 [submodule "gcov-cmake"]
 	path = gcov-cmake
 	url = git://github.com/polysquare/gcov-cmake
+[submodule "cmake-unit"]
+	path = cmake-unit
+	url = git://github.com/polysquare/cmake-unit
