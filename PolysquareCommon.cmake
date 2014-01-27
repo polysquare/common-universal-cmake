@@ -160,7 +160,7 @@ function (_polysquare_add_checks_to_target TARGET)
 
     endif (ADD_CHECK_VERAPP)
 
-    if (ADD_CHECK_CPPCEHCK)
+    if (ADD_CHECK_CPPCHECK)
 
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
