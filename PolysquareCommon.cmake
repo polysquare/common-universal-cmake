@@ -85,7 +85,7 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
                                                   polysquare_verapp_copy_profiles
                                                   "Vera++ profile")
 
-    add_dependencies (${_import_target} polysquare_verapp_copy_profile)
+    add_dependencies (${_import_target} polysquare_verapp_copy_profiles)
 
 
 
