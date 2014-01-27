@@ -1,0 +1,4 @@
+cppcheck
+libgtest-dev
+google-mock
+vera++
