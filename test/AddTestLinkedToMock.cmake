@@ -54,7 +54,7 @@ file (WRITE ${TEST_SOURCE_FILE}
 
 polysquare_add_mock (mock
                      SOURCES ${MOCK_SOURCE_FILE}
-                     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
+                     INTERNAL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
                      EXPORT_HEADER_DIRECTORY ${MOCK_HEADER_DIRECTORY})
 
 polysquare_add_test (unittest

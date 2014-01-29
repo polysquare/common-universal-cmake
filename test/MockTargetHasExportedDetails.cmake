@@ -14,8 +14,8 @@ file (WRITE ${MATCHER_SOURCE_FILE} "")
 
 polysquare_add_mock (mock
                      SOURCES ${MATCHER_SOURCE_FILE}
-                     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
-                      EXPORT_HEADER_DIRECTORY ${MATCHER_HEADER_DIRECTORY})
+                     INTERNAL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+                     EXPORT_HEADER_DIRECTORY ${MATCHER_HEADER_DIRECTORY})
 
 assert_has_property_with_value (TARGET mock
                                 EXPORT_HEADER_DIRECTORY

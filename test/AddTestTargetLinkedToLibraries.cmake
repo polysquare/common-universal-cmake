@@ -46,7 +46,7 @@ add_library (library SHARED
 
 polysquare_add_test (unittest
                      SOURCES ${TEST_SOURCE_FILE}
-                     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
+                     INTERNAL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
                      LIBRARIES library)
 
 # We are disabling these for now as the version of

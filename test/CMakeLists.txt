@@ -20,8 +20,6 @@ set (POLYSQUARE_INITIAL_CACHE_CONTENTS
      "     ${CMAKE_UNIT_DIRECTORY}\n"
      "     CACHE STRING \"\" FORCE)\n")
 
-message (${CMAKE_UNIT_DIRECTORY})
-
 set (CMAKE_MODULE_PATH
      ${CMAKE_UNIT_DIRECTORY}
      ${CMAKE_MODULE_PATH})
@@ -33,13 +31,23 @@ bootstrap_cmake_unit (INITIAL_CACHE_CONTENTS
 
 add_cmake_test (AddPolysquareCommonAsSubdirectory)
 add_cmake_test (CompilerFlagsSetAfterCompilerBootstrap)
+add_cmake_test (CoverageFlagsSetForGCCAfterCoverageBootstrap)
+add_cmake_test (CoverageFlagsNotSetForClangAfterCoverageBootstrap)
 add_cmake_test (VeraPPRulesSetAfterRulesBootstrap)
-add_cmake_test (UnusedFunctionScanTargetDefinedAfterRulesBootstrap)
 add_cmake_test (TestLibrariesAvailableAfterGoogleTestBootstrap)
 add_cmake_build_test (AddTestTargetLinkedToLibraries VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMatcher VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMock VerifyGTest)
+add_cmake_build_test (PolysquareVeraPPRulesCopiedOnDependentTargetBuild
+                      PolysquareVeraPPRulesCopiedOnDependentTargetBuildVerify)
+add_cmake_build_test (VeraPPWithPolysquareProfileRunOnTargetWithRules
+                      VeraPPWithPolysquareProfileRunOnTargetWithRulesVerify)
+add_cmake_build_test (CPPCheckRunWithCorrectIncludeDirs
+                      CPPCheckRunWithCorrectIncludeDirsVerify)
+add_cmake_build_test (CPPChecksAllInternalHeadersOnGlobalUnusedCheck
+                      CPPChecksAllInternalHeadersOnGlobalUnusedCheckVerify)
 add_cmake_test (AddMatcherTarget)
 add_cmake_test (MatcherTargetHasExportedDetails)
 add_cmake_test (AddMockTarget)
 add_cmake_test (MockTargetHasExportedDetails)
+add_cmake_test (GeneratedSourcesNotAddedToSources)
