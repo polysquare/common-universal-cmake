@@ -7,8 +7,10 @@ foreach f [getSourceFileNames] {
     set lineNo 1
     foreach line [getAllLines $f] {
         set caringAboutConst [expr 1]
+        set scanIdentifiers {const leftparen identifier unsigned int double float char bool auto}
+        set typeIdentifiers {identifier unsigned int double float char bool auto}
 
-        foreach t [getTokens $f $lineNo 0 [expr $lineNo + 1] -1 {const identifier leftparen}] {
+        foreach t [getTokens $f $lineNo 0 [expr $lineNo + 1] -1 $scanIdentifiers] {
             set type [lindex $t 3]
 
             # If we hit "const" and we 'care' about const, (eg, we're inside
@@ -20,10 +22,12 @@ foreach f [getSourceFileNames] {
                 }
             }
 
-            # If we hit an identifier, then we no longer care about const for
-            # this sub-expression
-            if {$type == "identifier"} {
-                set caringAboutConst [expr 0]
+            # If we hit an type identifier, then we no longer care about
+            # const this sub-expression
+            foreach typeId $typeIdentifiers {
+                if {$type == $typeId} {
+                    set caringAboutConst [expr 0]
+                }
             }
 
             # If we hit a leftparen, then we're in a new sub-expression and
