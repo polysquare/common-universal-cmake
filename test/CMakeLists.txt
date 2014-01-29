@@ -35,6 +35,8 @@ add_cmake_test (CoverageFlagsSetForGCCAfterCoverageBootstrap)
 add_cmake_test (CoverageFlagsNotSetForClangAfterCoverageBootstrap)
 add_cmake_test (VeraPPRulesSetAfterRulesBootstrap)
 add_cmake_test (TestLibrariesAvailableAfterGoogleTestBootstrap)
+add_cmake_build_test (AddSourcesScanTarget
+                      AddSourcesScanTargetVerify)
 add_cmake_build_test (AddTestTargetLinkedToLibraries VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMatcher VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMock VerifyGTest)

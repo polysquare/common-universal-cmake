@@ -228,6 +228,66 @@ function (_clear_variable_names_if_false PREFIX)
 
 endfunction (_clear_variable_names_if_false)
 
+function (polysquare_add_checked_sources TARGET)
+
+    set (SOURCES_OPTION_ARGS
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+    set (SOURCES_SINGLEVAR_ARGS
+         DESCRIPTION)
+    set (SOURCES_MULTIVAR_ARGS
+         SOURCES
+         INTERNAL_INCLUDE_DIRS)
+
+    cmake_parse_arguments (SOURCES
+                           "${SOURCES_OPTION_ARGS}"
+                           "${SOURCES_SINGLEVAR_ARGS}"
+                           "${SOURCES_MULTIVAR_ARGS}"
+                           ${ARGN})
+
+    if (SOURCES_UNPARSED_ARGUMENTS)
+
+        message (FATAL_ERROR
+                 "Unrecognized arguments ${SOURCES_UNPARSED_ARUGMENTS} "
+                 "given to polysquare_add_checked_sources")
+
+    endif (SOURCES_UNPARSED_ARGUMENTS)
+
+    _clear_variable_names_if_false (SOURCES
+                                    NO_CPPCHECK
+                                    NO_VERAPP
+                                    WARN_ONLY)
+
+    set (SOURCES_SCANNED_STAMP
+         ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-checked.stamp)
+
+    if (NOT SOURCES_DESCRIPTION)
+
+        set (SOURCES_DESCRIPTION "sources")
+
+    endif (NOT SOURCES_DESCRIPTION)
+
+    add_custom_target (${TARGET} ALL
+                       SOURCES ${SOURCES_SOURCES}
+                       DEPENDS ${SOURCES_SCANNED_STAMP}
+                       COMMENT "Scanning ${SOURCES_DESCRIPTION}")
+
+    add_custom_command (OUTPUT ${SOURCES_SCANNED_STAMP}
+                        PRE_BUILD
+                        COMMAND ${CMAKE_COMMAND} -E touch ${SOURCES_SCANNED_STAMP})
+
+    set_property (SOURCE ${SOURCES_SCANNED_STAMP}
+                  PROPERTY OBJECT_DEPENDS
+                  ${SOURCES_SOURCES})
+
+    polysquare_add_checks_to_target (${TARGET}
+                                     INTERNAL_INCLUDE_DIRS
+                                     ${SOURCES_INTERNAL_INCLUDE_DIRS}
+                                     ${SOURCES_NO_CPPCHECK}
+                                     ${SOURCES_NO_VERAPP}
+                                     ${SOURCES_WARN_ONLY})
+
+endfunction (polysquare_add_checked_sources)
+
 function (_polysquare_add_target_internal TARGET)
 
     set (TARGET_OPTION_ARGS
