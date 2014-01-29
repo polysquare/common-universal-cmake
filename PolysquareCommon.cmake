@@ -11,7 +11,7 @@ include (CMakeParseArguments)
 function (polysquare_compiler_bootstrap)
 
     # -fPIC, -Wall and -Werror are mandatory
-    set (COMPILER_FLAGS "-fPIC -Wall -Werror -Wextra")
+    set (COMPILER_FLAGS "-fPIC -Wall -Werror -Wextra -Wno-unused-parameter")
     set (CXX_CXX11_FLAGS "-std=c++0x")
     set (CMAKE_CXX_FLAGS
          "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS} ${CXX_CXX11_FLAGS}"
