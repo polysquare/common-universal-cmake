@@ -15,7 +15,7 @@ set (HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Header.h)
 set (SOURCE_FILE_CONTENTS
      "/* Copyright */\n"
      "#include \"Header.h\"\n"
-     "bool function()\n"
+     "bool function ()\n"
      "{\n"
      "    return true\;\n"
      "}\n")
@@ -23,7 +23,7 @@ set (HEADER_FILE_CONTENTS
      "/* Copyright */\n"
      "#ifndef HEADER_FILE\n"
      "#define HEADER_FILE\n"
-     "bool function()\;\n"
+     "bool function ()\;\n"
      "#endif\n")
 file (WRITE ${SOURCE_FILE} ${SOURCE_FILE_CONTENTS})
 file (WRITE ${HEADER_FILE} ${HEADER_FILE_CONTENTS})
