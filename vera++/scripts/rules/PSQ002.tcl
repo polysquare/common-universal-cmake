@@ -5,7 +5,7 @@
 
 foreach f [getSourceFileNames] {
     set lineNo 1
-    foreach line [getAllLines $f]
+    foreach line [getAllLines $f] {
         set caringAboutConst [expr 1]
 
         foreach t [getTokens $f $lineNo 0 [expr $lineNo + 1] -1 {const identifier leftparen}] {

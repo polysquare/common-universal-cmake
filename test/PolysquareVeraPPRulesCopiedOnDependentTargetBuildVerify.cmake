@@ -17,6 +17,7 @@ set (VERAPP_PROFILES_DIR
 
 assert_file_exists (${VERAPP_RULES_DIR}/PSQ001.tcl)
 assert_file_exists (${VERAPP_RULES_DIR}/PSQ002.tcl)
+assert_file_exists (${VERAPP_RULES_DIR}/PSQ004.tcl)
 assert_file_exists (${VERAPP_RULES_DIR}/PSQ011.tcl)
 assert_file_exists (${VERAPP_RULES_DIR}/PSQ016.tcl)
 assert_file_exists (${VERAPP_RULES_DIR}/F001.tcl)
