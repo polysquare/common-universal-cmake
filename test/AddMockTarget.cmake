@@ -26,7 +26,7 @@ file (WRITE ${MOCK_SOURCE_FILE}
 
 polysquare_add_mock (mock
                      SOURCES ${MOCK_SOURCE_FILE}
-                     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
+                     INTERNAL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
                      LIBRARIES library)
 
 # We are disabling these for now as the version of

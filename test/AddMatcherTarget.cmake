@@ -26,7 +26,7 @@ file (WRITE ${MATCHER_SOURCE_FILE}
 
 polysquare_add_matcher (matcher
                         SOURCES ${MATCHER_SOURCE_FILE}
-                        INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
+                        INTERNAL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
                         LIBRARIES library)
 
 # We are disabling these for now as the version of

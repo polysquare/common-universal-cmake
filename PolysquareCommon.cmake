@@ -11,7 +11,7 @@ include (CMakeParseArguments)
 function (polysquare_compiler_bootstrap)
 
     # -fPIC, -Wall and -Werror are mandatory
-    set (COMPILER_FLAGS "-fPIC -Wall -Werror")
+    set (COMPILER_FLAGS "-fPIC -Wall -Werror -Wextra")
     set (CXX_CXX11_FLAGS "-std=c++0x")
     set (CMAKE_CXX_FLAGS
          "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS} ${CXX_CXX11_FLAGS}"
@@ -21,6 +21,16 @@ function (polysquare_compiler_bootstrap)
          PARENT_SCOPE)
 
 endfunction (polysquare_compiler_bootstrap)
+
+macro (polysquare_coverage_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
+
+    set (CMAKE_MODULE_PATH
+         ${COMMON_UNIVERSAL_CMAKE_DIR}/gcov-cmake
+         ${CMAKE_MODULE_PATH})
+
+    include (GCovUtilities)
+
+endmacro (polysquare_coverage_bootstrap)
 
 macro (polysquare_cppcheck_bootstrap)
 
@@ -36,11 +46,25 @@ macro (polysquare_cppcheck_bootstrap)
 
     include (CPPCheck)
 
+    set (_POLYSQUARE_BOOTSTRAPPED_CPPCHECK TRUE)
+
+endmacro (polysquare_cppcheck_bootstrap)
+
+function (polysquare_cppcheck_complete_scanning)
+
     # Append all sources to unused function check
     add_custom_target (polysquare_check_unused ALL
                        COMMENT "Checking for unused functions")
 
-endmacro (polysquare_cppcheck_bootstrap)
+    get_property (INTERNAL_INCLUDES
+                  GLOBAL
+                  PROPERTY _POLYSQUARE_INTERNAL_INCLUDES)
+
+    cppcheck_add_global_unused_function_check_to_target (polysquare_check_unused
+                                                         INCLUDES
+                                                         ${INTERNAL_INCLUDES})
+
+endfunction (polysquare_cppcheck_complete_scanning)
 
 macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
@@ -87,7 +111,7 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
     add_dependencies (${_import_target} polysquare_verapp_copy_profiles)
 
-
+    set (_POLYSQUARE_BOOTSTRAPPED_VERAPP TRUE)
 
 endmacro (polysquare_vera_bootstrap)
 
@@ -108,6 +132,12 @@ macro (polysquare_rules_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
 endmacro (polysquare_rules_bootstrap)
 
+function (polysquare_rules_complete_scanning)
+
+    polysquare_cppcheck_complete_scanning ()
+
+endfunction (polysquare_rules_complete_scanning)
+
 macro (polysquare_gmock_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
     set (GMOCK_CMAKE_DIRECTORY
@@ -121,29 +151,37 @@ macro (polysquare_gmock_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
 endmacro (polysquare_gmock_bootstrap)
 
-function (_polysquare_add_checks_to_target TARGET)
+function (polysquare_add_checks_to_target TARGET)
 
     set (ADD_CHECKS_OPTION_ARGS
-         CPPCHECK;VERAPP;WARN_ONLY)
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
 
     set (ADD_CHECKS_MULTIVAR_ARGS
          INTERNAL_INCLUDE_DIRS)
 
-    cmake_parse_arguments (ADD_CHECK
+    cmake_parse_arguments (CHECKS
                            "${ADD_CHECKS_OPTION_ARGS}"
                            ""
-                           "${ADD_CHECKS_MULTIVAR_ARGS})"
+                           "${ADD_CHECKS_MULTIVAR_ARGS}"
                            ${ARGN})
 
-    if (ADD_CHECK_VERAPP)
+    if (CHECKS_UNPARSED_ARGUMENTS)
+
+        message (FATAL_ERROR
+                 "Unrecognized arguments ${CHECKS_UNPARSED_ARUGMENTS} "
+                 "given to polysquare_add_checks_to_target")
+
+    endif (CHECKS_UNPARSED_ARGUMENTS)
+
+    if (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
 
         set (_verapp_check_mode ERROR)
 
-        if (ADD_CHECKS_OPTION_ARGS_WARN_ONLY)
+        if (CHECKS_WARN_ONLY)
 
-            set (_verapp_check_mode ERROR)
+            set (_verapp_check_mode WARN_ONLY)
 
-        endif (ADD_CHECKS_OPTION_ARGS_WARN_ONLY)
+        endif (CHECKS_WARN_ONLY)
 
         set (_verapp_output_dir ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY})
         set (_source_dir ${CMAKE_CURRENT_SOURCE_DIR})
@@ -158,144 +196,417 @@ function (_polysquare_add_checks_to_target TARGET)
                                                        ${_import_rules_target}
                                                        ${_verapp_check_mode})
 
-    endif (ADD_CHECK_VERAPP)
+    endif (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
 
-    if (ADD_CHECK_CPPCHECK)
+    if (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
-                                 ${ADD_CHECKS_INTERNAL_INCLUDE_DIRS})
+                                 ${CHECKS_INTERNAL_INCLUDE_DIRS})
 
-    endif (ADD_CHECK_CPPCHECK)
+    endif (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
-endfunction (_polysquare_add_checks_to_target)
+endfunction (polysquare_add_checks_to_target)
 
-function (polysquare_add_test TEST_NAME)
+function (_clear_variable_names_if_false PREFIX)
 
-    set (TEST_MULTIVAR_ARGS
-         INCLUDE_DIRECTORIES;SOURCES;LIBRARIES;MATCHERS;MOCKS)
+    foreach (VAR_NAME ${ARGN})
 
-    cmake_parse_arguments (TEST
-                           ""
-                           ""
-                           "${TEST_MULTIVAR_ARGS}"
+        set (PREFIX_VAR_NAME ${PREFIX}_${VAR_NAME})
+
+        if (NOT ${PREFIX_VAR_NAME})
+
+            set (${PREFIX_VAR_NAME} PARENT_SCOPE)
+
+        else (NOT ${PREFIX_VAR_NAME})
+
+            set (${PREFIX_VAR_NAME} ${VAR_NAME} PARENT_SCOPE)
+
+        endif (NOT ${PREFIX_VAR_NAME})
+
+    endforeach ()
+
+endfunction (_clear_variable_names_if_false)
+
+function (_polysquare_add_target_internal TARGET)
+
+    set (TARGET_OPTION_ARGS
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+    set (TARGET_SINGLEVAR_ARGS
+         EXPORT_HEADER_DIRECTORY)
+    set (TARGET_MULTIVAR_ARGS
+         LIBRARIES
+         INTERNAL_INCLUDE_DIRS
+         EXTERNAL_INCLUDE_DIRS
+         SOURCES
+         GENERATED_SOURCES)
+
+    cmake_parse_arguments (TARGET
+                           "${TARGET_OPTION_ARGS}"
+                           "${TARGET_SINGLEVAR_ARGS}"
+                           "${TARGET_MULTIVAR_ARGS}"
                            ${ARGN})
 
-    list (APPEND TEST_INCLUDE_DIRECTORIES
+    if (TARGET_LIBRARIES)
+
+        target_link_libraries (${TARGET}
+                               ${TARGET_LIBRARIES})
+
+    endif (TARGET_LIBRARIES)
+
+    if (TARGET_INTERNAL_INCLUDE_DIRS OR TARGET_EXTERNAL_INCLUDE_DIRS)
+
+        # FIXME
+        # Older versions of CMake such as that in Travis-CI at the moment
+        # don't have per-target INCLUDE_DIRECTORIES, so we'll need to
+        # add it to the directory level at this point.
+
+        include_directories (${TARGET_INTERNAL_INCLUDE_DIRS}
+                             ${TARGET_EXTERNAL_INCLUDE_DIRS})
+
+        # set_property (TARGET ${TARGET}
+        #               PROPERTY INCLUDE_DIRECTORIES
+        #               ${TARGET_INTERNAL_INCLUDE_DIRS}
+        #               ${TARGET_EXTERNAL_INCLUDE_DIRS})
+
+    endif (TARGET_INTERNAL_INCLUDE_DIRS OR TARGET_EXTERNAL_INCLUDE_DIRS)
+
+    if (TARGET_EXPORT_HEADER_DIRECTORY)
+
+        set_property (TARGET ${TARGET}
+                      PROPERTY EXPORT_HEADER_DIRECTORY
+                      ${TARGET_EXPORT_HEADER_DIRECTORY})
+
+    endif (TARGET_EXPORT_HEADER_DIRECTORY)
+
+    # If we had any generated sources then we'll need to add a dependency
+    # on each of the sources we used to generate this target to ensure that
+    # they are always generated before building this target
+    foreach (SOURCE ${TARGET_SOURCES})
+
+        set_property (SOURCE ${SOURCE}
+                      PROPERTY OBJECT_DEPENDS
+                      ${TARGET_GENERATED_SOURCES})
+
+    endforeach ()
+
+    _clear_variable_names_if_false (TARGET
+                                    NO_CPPCHECK
+                                    NO_VERAPP
+                                    WARN_ONLY)
+
+    polysquare_add_checks_to_target (${TARGET}
+                                     INTERNAL_INCLUDE_DIRS
+                                     ${TARGET_INTERNAL_INCLUDE_DIRS}
+                                     ${TARGET_NO_CPPCHECK}
+                                     ${TARGET_NO_VERAPP}
+                                     ${TARGET_WARN_ONLY})
+
+endfunction (_polysquare_add_target_internal)
+
+function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
+
+    set (LIBRARY_OPTION_ARGS
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+    set (LIBRARY_SINGLEVAR_ARGS
+         EXPORT_HEADER_DIRECTORY)
+    set (LIBRARY_MULTIVAR_ARGS
+         EXTERNAL_INCLUDE_DIRS
+         INTERNAL_INCLUDE_DIRS
+         LIBRARIES
+         SOURCES
+         GENERATED_SOURCES)
+
+    cmake_parse_arguments (LIBRARY
+                           "${LIBRARY_OPTION_ARGS}"
+                           "${LIBRARY_SINGLEVAR_ARGS}"
+                           "${LIBRARY_MULTIVAR_ARGS}"
+                           ${ARGN})
+
+    if (LIBRARY_UNPARSED_ARGUMENTS)
+
+        message (FATAL_ERROR
+                 "Unrecognized arguments ${LIBRARY_UNPARSED_ARGUMENTS} "
+                 "given to polysquare_add_library")
+
+    endif (LIBRARY_UNPARSED_ARGUMENTS)
+
+    add_library (${LIBRARY_NAME}
+                 ${LIBRARY_TYPE}
+                 ${LIBRARY_SOURCES})
+
+    _clear_variable_names_if_false (LIBRARY
+                                    NO_CPPCHECK
+                                    NO_VERAPP
+                                    WARN_ONLY)
+
+    _polysquare_add_target_internal (${LIBRARY_NAME}
+                                     EXTERNAL_INCLUDE_DIRS
+                                     ${LIBRARY_EXTERNAL_INCLUDE_DIRS}
+                                     INTERNAL_INCLUDE_DIRS
+                                     ${LIBRARY_INTERNAL_INCLUDE_DIRS}
+                                     LIBRARIES ${LIBRARY_LIBRARIES}
+                                     SOURCES ${LIBRARY_SOURCES}
+                                     GENERATED_SOURCES
+                                     ${LIBRARY_GENERATED_SOURCES}
+                                     EXPORT_HEADER_DIRECTORY
+                                     ${LIBRARY_EXPORT_HEADER_DIRECTORY}
+                                     ${LIBRARY_NO_CPPCHECK}
+                                     ${LIBRARY_NO_VERAPP}
+                                     ${LIBRARY_WARN_ONLY})
+
+endfunction (polysquare_add_library)
+
+function (polysquare_add_executable EXECUTABLE_NAME)
+
+    set (EXECUTABLE_OPTION_ARGS
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+    set (EXECUTABLE_SINGLEVAR_ARGS
+         EXPORT_HEADER_DIRECTORY)
+    set (EXECUTABLE_MULTIVAR_ARGS
+         EXTERNAL_INCLUDE_DIRS
+         INTERNAL_INCLUDE_DIRS
+         LIBRARIES
+         SOURCES
+         GENERATED_SOURCES)
+
+    cmake_parse_arguments (EXECUTABLE
+                           "${EXECUTABLE_OPTION_ARGS}"
+                           "${EXECUTABLE_SINGLEVAR_ARGS}"
+                           "${EXECUTABLE_MULTIVAR_ARGS}"
+                           ${ARGN})
+
+    if (EXECUTABLE_UNPARSED_ARGUMENTS)
+
+        message (FATAL_ERROR
+                 "Unrecognized arguments ${EXECUTABLE_UNPARSED_ARGUMENTS} "
+                 "given to polysquare_add_executable")
+
+    endif (EXECUTABLE_UNPARSED_ARGUMENTS)
+
+    add_executable (${EXECUTABLE_NAME}
+                    ${EXECUTABLE_SOURCES})
+
+    _clear_variable_names_if_false (EXECUTABLE
+                                    NO_CPPCHECK
+                                    NO_VERAPP
+                                    WARN_ONLY)
+
+    _polysquare_add_target_internal (${EXECUTABLE_NAME}
+                                     EXTERNAL_INCLUDE_DIRS
+                                     ${EXECUTABLE_EXTERNAL_INCLUDE_DIRS}
+                                     INTERNAL_INCLUDE_DIRS
+                                     ${EXECUTABLE_INTERNAL_INCLUDE_DIRS}
+                                     LIBRARIES ${EXECUTABLE_LIBRARIES}
+                                     SOURCES ${EXECUTABLE_SOURCES}
+                                     GENERATED_SOURCES
+                                     ${EXECUTABLE_GENERATED_SOURCES}
+                                     EXPORT_HEADER_DIRECTORY
+                                     ${EXECUTABLE_EXPORT_HEADER_DIRECTORY}
+                                     ${EXECUTABLE_NO_CPPCHECK}
+                                     ${EXECUTABLE_NO_VERAPP}
+                                     ${EXECUTABLE_WARN_ONLY})
+
+endfunction (polysquare_add_executable)
+
+macro (_polysquare_add_gtest_includes_and_libraries EXTERNAL_INCLUDE_DIRS_VAR
+                                                    LIBRARIES_VAR)
+
+    list (APPEND ${EXTERNAL_INCLUDE_DIRS_VAR}
           ${GTEST_INCLUDE_DIR}
           ${GMOCK_INCLUDE_DIR})
-    list (APPEND TEST_LIBRARIES
+
+    list (APPEND ${LIBRARIES_VAR}
           ${GTEST_LIBRARY}
           ${GMOCK_LIBRARY}
           ${CMAKE_THREAD_LIBS_INIT}
           ${GMOCK_MAIN_LIBRARY})
 
+endmacro (_polysquare_add_gtest_includes_and_libraries)
+
+macro (_polysquare_add_library_export_headers LIBRARY
+                                              INCLUDE_DIRS_VAR
+                                              LIBRARIES_VAR)
+
+    list (APPEND ${LIBRARIES_VAR}
+          ${LIBRARY})
+
+    get_property (EXPORT_HEADER_DIRECTORY
+                  TARGET ${LIBRARY}
+                  PROPERTY EXPORT_HEADER_DIRECTORY)
+
+    list (APPEND ${INCLUDE_DIRS_VAR}
+          ${EXPORT_HEADER_DIRECTORY})
+
+endmacro (_polysquare_add_library_export_headers)
+
+function (polysquare_add_test TEST_NAME)
+
+    set (TEST_OPTION_ARGS
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+    set (TEST_SINGLEVAR_ARGS
+         EXPORT_HEADER_DIRECTORY)
+    set (TEST_MULTIVAR_ARGS
+         EXTERNAL_INCLUDE_DIRS
+         INTERNAL_INCLUDE_DIRS
+         LIBRARIES
+         SOURCES
+         GENERATED_SOURCES
+         MATCHERS
+         MOCKS)
+
+    cmake_parse_arguments (TEST
+                           "${TEST_OPTION_ARGS}"
+                           "${TEST_SINGLEVAR_ARGS}"
+                           "${TEST_MULTIVAR_ARGS}"
+                           ${ARGN})
+
+    if (TEST_UNPARSED_ARGUMENTS)
+
+        message (FATAL_ERROR
+                 "Unrecognized arguments ${TEST_UNPARSED_ARUGMENTS} given to "
+                 "polysquare_add_test")
+
+    endif (TEST_UNPARSED_ARGUMENTS)
+
+    _polysquare_add_gtest_includes_and_libraries (TEST_EXTERNAL_INCLUDE_DIRS
+                                                  TEST_LIBRARIES)
+    list (APPEND TEST_LIBRARIES
+          ${GMOCK_MAIN_LIBRARY})
+
     foreach (MATCHER ${TEST_MATCHERS})
 
-        list (APPEND TEST_LIBRARIES
-              ${MATCHER})
-
-        get_property (MATCHER_EXPORT_HEADER_DIRECTORY
-                      TARGET ${MATCHER}
-                      PROPERTY EXPORT_HEADER_DIRECTORY)
-
-        list (APPEND TEST_INCLUDE_DIRECTORIES
-              ${MATCHER_EXPORT_HEADER_DIRECTORY})
+        _polysquare_add_library_export_headers (${MATCHER}
+                                                TEST_INTERNAL_INCLUDE_DIRS
+                                                TEST_LIBRARIES)
 
     endforeach ()
 
     foreach (MOCK ${TEST_MOCKS})
 
-        list (APPEND TEST_LIBRARIES
-              ${MOCK})
-
-        get_property (MOCK_EXPORT_HEADER_DIRECTORY
-                      TARGET ${MOCK}
-                      PROPERTY EXPORT_HEADER_DIRECTORY)
-
-        list (APPEND TEST_INCLUDE_DIRECTORIES
-              ${MOCK_EXPORT_HEADER_DIRECTORY})
+        _polysquare_add_library_export_headers (${MOCK}
+                                                TEST_INTERNAL_INCLUDE_DIRS
+                                                TEST_LIBRARIES)
 
     endforeach ()
 
-    include_directories (${TEST_INCLUDE_DIRECTORIES})
+    _clear_variable_names_if_false (TEST
+                                    NO_CPPCHECK
+                                    NO_VERAPP
+                                    WARN_ONLY)
 
-    add_executable (${TEST_NAME}
-                    ${TEST_SOURCES})
-
-    target_link_libraries (${TEST_NAME}
-                           ${TEST_LIBRARIES})
+    polysquare_add_executable (${TEST_NAME}
+                               EXTERNAL_INCLUDE_DIRS
+                               ${TEST_EXTERNAL_INCLUDE_DIRS}
+                               INTERNAL_INCLUDE_DIRS
+                               ${TEST_INTERNAL_INCLUDE_DIRS}
+                               LIBRARIES ${TEST_LIBRARIES}
+                               SOURCES ${TEST_SOURCES}
+                               GENERATED_SOURCES ${TEST_GENERATED_SOURCES}
+                               EXPORT_HEADER_DIRECTORY
+                               ${TEST_EXPORT_HEADER_DIRECTORY}
+                               ${TEST_NO_CPPCHECK}
+                               ${TEST_NO_VERAPP}
+                               ${TEST_WARN_ONLY})
 
 endfunction (polysquare_add_test)
 
 function (polysquare_add_matcher MATCHER_NAME)
 
-    set (MATCHER_SINGLE_VALUE_ARGS
+    set (MATCHER_OPTION_ARGS
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+    set (MATCHER_SINGLEVAR_ARGS
          EXPORT_HEADER_DIRECTORY)
-    set (MATCHER_MULTIVALUE_ARGS
-         INCLUDE_DIRECTORIES;SOURCES;LIBRARIES)
+    set (MATCHER_MULTIVAR_ARGS
+         EXTERNAL_INCLUDE_DIRS
+         INTERNAL_INCLUDE_DIRS
+         LIBRARIES
+         SOURCES
+         GENERATED_SOURCES)
 
     cmake_parse_arguments (MATCHER
-                           ""
-                           "${MATCHER_SINGLE_VALUE_ARGS}"
-                           "${MATCHER_MULTIVALUE_ARGS}"
+                           "${MATCHER_OPTION_ARGS}"
+                           "${MATCHER_SINGLEVAR_ARGS}"
+                           "${MATCHER_MULTIVAR_ARGS}"
                            ${ARGN})
 
-    list (APPEND MATCHER_INCLUDE_DIRECTORIES
-          ${GTEST_INCLUDE_DIR}
-          ${GMOCK_INCLUDE_DIR})
-    list (APPEND MATCHER_LIBRARIES
-          ${GTEST_LIBRARY}
-          ${GMOCK_LIBRARY}
-          ${CMAKE_THREAD_LIBS_INIT})
+    if (MATCHER_UNPARSED_ARGUMENTS)
 
-    include_directories (${MATCHER_INCLUDE_DIRECTORIES})
+        message (FATAL_ERROR
+                 "Unrecognized arguments ${MATCHER_UNPARSED_ARUGMENTS} given to"
+                 " polysquare_add_matcher")
 
-    add_library (${MATCHER_NAME} STATIC
-                 ${MATCHER_SOURCES})
+    endif (MATCHER_UNPARSED_ARGUMENTS)
 
-    target_link_libraries (${MATCHER_NAME}
-                           ${MATCHER_LIBRARIES})
+    _polysquare_add_gtest_includes_and_libraries (MATCHER_EXTERNAL_INCLUDE_DIRS
+                                                  MATCHER_LIBRARIES)
 
-    set_property (TARGET ${MATCHER_NAME}
-                  PROPERTY EXPORT_HEADER_DIRECTORY
-                  ${MATCHER_EXPORT_HEADER_DIRECTORY})
+    _clear_variable_names_if_false (MATCHER
+                                    NO_CPPCHECK
+                                    NO_VERAPP
+                                    WARN_ONLY)
+
+    polysquare_add_library (${MATCHER_NAME} STATIC
+                            EXTERNAL_INCLUDE_DIRS
+                            ${MATCHER_EXTERNAL_INCLUDE_DIRS}
+                            INTERNAL_INCLUDE_DIRS
+                            ${MATCHER_INTERNAL_INCLUDE_DIRS}
+                            LIBRARIES ${MATCHER_LIBRARIES}
+                            SOURCES ${MATCHER_SOURCES}
+                            GENERATED_SOURCES ${MATCHER_GENERATED_SOURCES}
+                            EXPORT_HEADER_DIRECTORY
+                            ${MATCHER_EXPORT_HEADER_DIRECTORY}
+                            ${MATCHER_NO_CPPCHECK}
+                            ${MATCHER_NO_VERAPP}
+                            ${MATCHER_WARN_ONLY})
 
 endfunction (polysquare_add_matcher)
 
 function (polysquare_add_mock MOCK_NAME)
 
-    set (MOCK_SINGLE_VALUE_ARGS
+    set (MOCK_OPTION_ARGS
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+    set (MOCK_SINGLEVAR_ARGS
          EXPORT_HEADER_DIRECTORY)
-    set (MOCK_MULTIVALUE_ARGS
-         INCLUDE_DIRECTORIES;SOURCES;LIBRARIES)
+    set (MOCK_MULTIVAR_ARGS
+         EXTERNAL_INCLUDE_DIRS
+         INTERNAL_INCLUDE_DIRS
+         LIBRARIES
+         SOURCES
+         GENERATED_SOURCES)
 
     cmake_parse_arguments (MOCK
-                           ""
-                           "${MOCK_SINGLE_VALUE_ARGS}"
-                           "${MOCK_MULTIVALUE_ARGS}"
+                           "${MOCK_OPTION_ARGS}"
+                           "${MOCK_SINGLEVAR_ARGS}"
+                           "${MOCK_MULTIVAR_ARGS}"
                            ${ARGN})
 
-    list (APPEND MOCK_INCLUDE_DIRECTORIES
-          ${GTEST_INCLUDE_DIR}
-          ${GMOCK_INCLUDE_DIR})
-    list (APPEND MOCK_LIBRARIES
-          ${GTEST_LIBRARY}
-          ${GMOCK_LIBRARY}
-          ${CMAKE_THREAD_LIBS_INIT})
+    if (MOCK_UNPARSED_ARGUMENTS)
 
-    include_directories (${MOCK_INCLUDE_DIRECTORIES})
+        message (FATAL_ERROR
+                 "Unrecognized arguments ${MOCK_UNPARSED_ARUGMENTS} given to "
+                 "polysquare_add_mock")
 
-    add_library (${MOCK_NAME} STATIC
-                 ${MOCK_SOURCES})
+    endif (MOCK_UNPARSED_ARGUMENTS)
 
-    target_link_libraries (${MOCK_NAME}
-                           ${MOCK_LIBRARIES})
+    _polysquare_add_gtest_includes_and_libraries (MOCK_EXTERNAL_INCLUDE_DIRS
+                                                  MOCK_LIBRARIES)
 
-    set_property (TARGET ${MOCK_NAME}
-                  PROPERTY EXPORT_HEADER_DIRECTORY
-                  ${MOCK_EXPORT_HEADER_DIRECTORY})
+    _clear_variable_names_if_false (MOCK
+                                    NO_CPPCHECK
+                                    NO_VERAPP
+                                    WARN_ONLY)
+
+    polysquare_add_library (${MOCK_NAME} STATIC
+                            EXTERNAL_INCLUDE_DIRS ${MOCK_EXTERNAL_INCLUDE_DIRS}
+                            INTERNAL_INCLUDE_DIRS ${MOCK_INTERNAL_INCLUDE_DIRS}
+                            LIBRARIES ${MOCK_LIBRARIES}
+                            SOURCES ${MOCK_SOURCES}
+                            GENERATED_SOURCES ${MOCK_GENERATED_SOURCES}
+                            EXPORT_HEADER_DIRECTORY
+                            ${MOCK_EXPORT_HEADER_DIRECTORY}
+                            ${MOCK_NO_CPPCHECK}
+                            ${MOCK_NO_VERAPP}
+                            ${MOCK_WARN_ONLY})
 
 endfunction (polysquare_add_mock)
-
-
