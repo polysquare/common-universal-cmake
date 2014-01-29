@@ -7,9 +7,10 @@ foreach f [getSourceFileNames] {
         set keyword [lindex $t 0]
         set line [lindex $t 1]
         set column [lindex $t 2]
+        set type [lindex $t 3]
         set searchColumn [expr $column]
 
-        set leftEnclosingTokens { leftparen leftbracket less }
+        set leftIgnoreTokens { star and leftparen leftbracket rightbracket less }
 
         # Keep searching backwards until we hit either a token or the beginning
         # of the line. Error out if:
@@ -17,7 +18,7 @@ foreach f [getSourceFileNames] {
         # 2. We found a token before us on this line, but with > 1 whitespace.
         # 3. We found a token before us on this line, but with < 1 whitespace.
         set previousTokens [getTokens $f $line $searchColumn $line [expr $searchColumn + 1] {}]
-        set parenAndBracketsSize [expr 0]
+        set skipChecks [expr 0]
         while {$searchColumn != 0} {
             set searchColumn [expr $searchColumn -1]
             set previousTokens [getTokens $f $line $searchColumn $line [expr $searchColumn + 1] {}]
@@ -28,22 +29,21 @@ foreach f [getSourceFileNames] {
                 if {$currentTokenType == "space"} {
                     continue
                 } else {
-                    set foundEnclosingToken [expr 0]
-                    foreach enclosingToken $leftEnclosingTokens {
-                        if {$enclosingToken == $currentTokenType} {
-                            set foundEnclosingToken [expr 1]
-                            incr parenAndBracketsSize
+                    # Found a token, determine if we either want
+                    # to do checks or skip them entirely
+                    foreach ignoreToken $leftIgnoreTokens {
+                        if {$ignoreToken == $currentTokenType} {
+                            set skipChecks [expr 1]
                         }
                     }
 
-                    # Found an enclosing token, continue search
-                    if {$foundEnclosingToken == 1} {
-                        continue
-                    } else {
-                        break
-                    }
+                    break
                 }
             }
+        }
+
+        if {$skipChecks == 1} {
+            continue
         }
 
         if {[llength $previousTokens] > 0} {
@@ -66,7 +66,6 @@ foreach f [getSourceFileNames] {
         # between our identifier and the relevant brace (taking into
         # account brackets and parens) is not equal to 1
         set distance [expr $column - $searchColumn]
-        set distance [expr $distance - $parenAndBracketsSize]
         
         if {$distance > 1} {
             if {$searchColumn > 0} {
@@ -74,8 +73,11 @@ foreach f [getSourceFileNames] {
             }
         } else {
             if {$distance < 1} {
-                # Not enough spaces
-                report $f $line "no whitespace between identifer and leftparen"
+                # Not enough spaces and identifier is not next to a square
+                # bracket
+                if {$type != "leftbracket"} {
+                    report $f $line "no whitespace between identifer and leftparen"
+                }
             }
         }
     }
