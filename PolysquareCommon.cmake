@@ -9,6 +9,8 @@
 include (CMakeParseArguments)
 
 option (POLYSQUARE_BUILD_TESTS "Build tests" ON)
+option (POLYSQUARE_USE_VERAPP
+        "Check source files for style compliance with vera++" ON)
 
 function (polysquare_compiler_bootstrap)
 
@@ -70,50 +72,64 @@ endfunction (polysquare_cppcheck_complete_scanning)
 
 macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
-    # Bootstrap vera++
-    find_package (VeraPP 1.2 REQUIRED)
-    include (VeraPPUtilities)
+    if (POLYSQUARE_USE_VERAPP)
 
-    set (_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY
-         ${BINARY_DIR}/vera++)
-    set (_POLYSQUARE_VERAPP_SCRIPTS_OUTPUT_DIRECTORY
-         ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY}/scripts)
-    set (_POLYSQUARE_VERAPP_SOURCE_DIRECTORY
-         ${COMMON_UNIVERSAL_CMAKE_DIR}/vera++)
-    set (_POLYSQUARE_VERAPP_SCRIPTS_SOURCE_DIRECTORY
-         ${_POLYSQUARE_VERAPP_SOURCE_DIRECTORY}/scripts)
-    set (_POLYSQUARE_VERAPP_PROFILE polysquare)
-    set (_POLYSQUARE_VERAPP_IMPORT_RULES polysquare_verapp_import_rules)
+        # Bootstrap vera++
+        find_package (VeraPP 1.2 REQUIRED)
+        include (VeraPPUtilities)
 
-    set (_profile ${_POLYSQUARE_VERAPP_PROFILE})
-    set (_import_target ${_POLYSQUARE_VERAPP_IMPORT_RULES})
-    set (_rules_out_dir ${_POLYSQUARE_VERAPP_SCRIPTS_OUTPUT_DIRECTORY}/rules/)
-    set (_profiles_out_dir ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY}/profiles/)
-    set (_rules_in_dir ${_POLYSQUARE_VERAPP_SCRIPTS_SOURCE_DIRECTORY}/rules/)
-    set (_profiles_in_dir ${_POLYSQUARE_VERAPP_SOURCE_DIRECTORY}/profiles/)
+        set (_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY
+             ${BINARY_DIR}/vera++)
+        set (_POLYSQUARE_VERAPP_SCRIPTS_OUTPUT_DIRECTORY
+             ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY}/scripts)
+        set (_POLYSQUARE_VERAPP_SOURCE_DIRECTORY
+             ${COMMON_UNIVERSAL_CMAKE_DIR}/vera++)
+        set (_POLYSQUARE_VERAPP_SCRIPTS_SOURCE_DIRECTORY
+             ${_POLYSQUARE_VERAPP_SOURCE_DIRECTORY}/scripts)
+        set (_POLYSQUARE_VERAPP_PROFILE polysquare)
+        set (_POLYSQUARE_VERAPP_IMPORT_RULES polysquare_verapp_import_rules)
 
-    add_custom_target (${_import_target} ALL)
+        set (_profile ${_POLYSQUARE_VERAPP_PROFILE})
+        set (_i_target ${_POLYSQUARE_VERAPP_IMPORT_RULES})
+        set (_copy_rules_target polysquare_verapp_copy_rules)
+        set (_copy_profiles_target polysquare_verapp_copy_profiles)
+        set (_r_out_dir
+             ${_POLYSQUARE_VERAPP_SCRIPTS_OUTPUT_DIRECTORY}/rules/)
+        set (_profiles_out_dir
+             ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY}/profiles/)
+        set (_rules_in_dir
+             ${_POLYSQUARE_VERAPP_SCRIPTS_SOURCE_DIRECTORY}/rules/)
+        set (_profiles_in_dir
+             ${_POLYSQUARE_VERAPP_SOURCE_DIRECTORY}/profiles/)
 
-    verapp_import_default_rules_into_subdirectory_on_target (${_rules_out_dir}
-                                                             ${_import_target})
+        add_custom_target (${_i_target} ALL)
 
-    verapp_copy_files_in_dir_to_subdir_on_target (${_rules_in_dir}
-                                                  ${_rules_out_dir}
-                                                  .tcl
-                                                  polysquare_verapp_copy_rules
-                                                  "Vera++ rule")
+        verapp_import_default_rules_into_subdirectory_on_target (${_r_out_dir}
+                                                                 ${_i_target})
 
-    add_dependencies (${_import_target} polysquare_verapp_copy_rules)
+        verapp_copy_files_in_dir_to_subdir_on_target (${_rules_in_dir}
+                                                      ${_r_out_dir}
+                                                      .tcl
+                                                      ${_copy_rules_target}
+                                                      "Vera++ rule")
 
-    verapp_copy_files_in_dir_to_subdir_on_target (${_profiles_in_dir}
-                                                  ${_profiles_out_dir}
-                                                  NO_MATCH
-                                                  polysquare_verapp_copy_profiles
-                                                  "Vera++ profile")
+        add_dependencies (${_i_target} polysquare_verapp_copy_rules)
 
-    add_dependencies (${_import_target} polysquare_verapp_copy_profiles)
+        verapp_copy_files_in_dir_to_subdir_on_target (${_profiles_in_dir}
+                                                      ${_profiles_out_dir}
+                                                      NO_MATCH
+                                                      ${_copy_profiles_target}
+                                                      "Vera++ profile")
 
-    set (_POLYSQUARE_BOOTSTRAPPED_VERAPP TRUE)
+        add_dependencies (${_i_target} polysquare_verapp_copy_profiles)
+
+        set (_POLYSQUARE_BOOTSTRAPPED_VERAPP TRUE)
+
+    else (POLYSQUARE_USE_VERAPP)
+
+        message (STATUS "Vera++ style checks have been disabled")
+
+    endif (POLYSQUARE_USE_VERAPP)
 
 endmacro (polysquare_vera_bootstrap)
 
