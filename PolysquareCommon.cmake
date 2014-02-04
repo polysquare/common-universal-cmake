@@ -8,6 +8,7 @@
 
 include (CMakeParseArguments)
 
+option (POLYSQUARE_USE_STRICT_COMPILER "Make compiler warnings errors" ON)
 option (POLYSQUARE_BUILD_TESTS "Build tests" ON)
 option (POLYSQUARE_USE_VERAPP
         "Check source files for style compliance with vera++" ON)
@@ -16,8 +17,17 @@ option (POLYSQUARE_USE_CPPCHECK
 
 function (polysquare_compiler_bootstrap)
 
-    # -fPIC, -Wall and -Werror are mandatory
-    set (COMPILER_FLAGS "-fPIC -Wall -Werror -Wextra -Wno-unused-parameter")
+    set (WERROR)
+
+    # -Werror only mandatory if the user asked for it
+    if (POLYSQUARE_USE_STRICT_COMPILER)
+
+        set (WERROR "-Werror")
+
+    endif (POLYSQUARE_USE_STRICT_COMPILER)
+
+    # -fPIC and -Wall -Wextra are mandatory
+    set (COMPILER_FLAGS "-fPIC -Wall -Wextra -Wno-unused-parameter ${WERROR}")
     set (CXX_CXX11_FLAGS "-std=c++0x")
     set (CMAKE_CXX_FLAGS
          "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS} ${CXX_CXX11_FLAGS}"
