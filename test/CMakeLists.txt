@@ -43,6 +43,8 @@ add_cmake_build_test (AddTestLinkedToMatcher VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMock VerifyGTest)
 add_cmake_build_test (PolysquareVeraPPRulesCopiedOnDependentTargetBuild
                       PolysquareVeraPPRulesCopiedOnDependentTargetBuildVerify)
+add_cmake_build_test (NoCPPCheckOption
+                      NoCPPCheckOptionVerify)
 add_cmake_build_test (NoVeraPPOption
                       NoVeraPPOptionVerify)
 add_cmake_build_test (VeraPPWithPolysquareProfileRunOnTargetWithRules
