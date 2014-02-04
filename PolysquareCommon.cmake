@@ -8,6 +8,8 @@
 
 include (CMakeParseArguments)
 
+option (POLYSQUARE_BUILD_TESTS "Build tests" ON)
+
 function (polysquare_compiler_bootstrap)
 
     # -fPIC, -Wall and -Werror are mandatory
@@ -140,14 +142,22 @@ endfunction (polysquare_rules_complete_scanning)
 
 macro (polysquare_gmock_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
-    set (GMOCK_CMAKE_DIRECTORY
-         ${COMMON_UNIVERSAL_CMAKE_DIR}/gmock-cmake)
+    if (POLYSQUARE_BUILD_TESTS)
 
-    set (CMAKE_MODULE_PATH
-         ${GMOCK_CMAKE_DIRECTORY}
-         ${CMAKE_MODULE_PATH})
+        set (GMOCK_CMAKE_DIRECTORY
+             ${COMMON_UNIVERSAL_CMAKE_DIR}/gmock-cmake)
 
-    find_package (GoogleMock REQUIRED)
+        set (CMAKE_MODULE_PATH
+             ${GMOCK_CMAKE_DIRECTORY}
+             ${CMAKE_MODULE_PATH})
+
+        find_package (GoogleMock REQUIRED)
+
+    else (POLYSQUARE_BUILD_TESTS)
+
+        message (STATUS "Building tests has been disabled")
+
+    endif (POLYSQUARE_BUILD_TESTS)
 
 endmacro (polysquare_gmock_bootstrap)
 
@@ -502,6 +512,12 @@ endmacro (_polysquare_add_library_export_headers)
 
 function (polysquare_add_test TEST_NAME)
 
+    if (NOT POLYSQUARE_BUILD_TESTS)
+
+        return ()
+
+    endif (NOT POLYSQUARE_BUILD_TESTS)
+
     set (TEST_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (TEST_SINGLEVAR_ARGS
@@ -573,6 +589,12 @@ endfunction (polysquare_add_test)
 
 function (polysquare_add_matcher MATCHER_NAME)
 
+    if (NOT POLYSQUARE_BUILD_TESTS)
+
+        return ()
+
+    endif (NOT POLYSQUARE_BUILD_TESTS)
+
     set (MATCHER_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (MATCHER_SINGLEVAR_ARGS
@@ -623,6 +645,12 @@ function (polysquare_add_matcher MATCHER_NAME)
 endfunction (polysquare_add_matcher)
 
 function (polysquare_add_mock MOCK_NAME)
+
+    if (NOT POLYSQUARE_BUILD_TESTS)
+
+        return ()
+
+    endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MOCK_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)

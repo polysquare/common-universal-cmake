@@ -33,6 +33,7 @@ add_cmake_test (AddPolysquareCommonAsSubdirectory)
 add_cmake_test (CompilerFlagsSetAfterCompilerBootstrap)
 add_cmake_test (CoverageFlagsSetForGCCAfterCoverageBootstrap)
 add_cmake_test (CoverageFlagsNotSetForClangAfterCoverageBootstrap)
+add_cmake_test (NoBuildTestsOption)
 add_cmake_test (VeraPPRulesSetAfterRulesBootstrap)
 add_cmake_test (TestLibrariesAvailableAfterGoogleTestBootstrap)
 add_cmake_build_test (AddSourcesScanTarget
