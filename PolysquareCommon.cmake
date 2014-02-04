@@ -11,6 +11,8 @@ include (CMakeParseArguments)
 option (POLYSQUARE_BUILD_TESTS "Build tests" ON)
 option (POLYSQUARE_USE_VERAPP
         "Check source files for style compliance with vera++" ON)
+option (POLYSQUARE_USE_CPPCHECK
+        "Perform simple static analysis for known bad practices" ON)
 
 function (polysquare_compiler_bootstrap)
 
@@ -38,23 +40,37 @@ endmacro (polysquare_coverage_bootstrap)
 
 macro (polysquare_cppcheck_bootstrap)
 
-    find_program (CPPCHECK_EXECUTABLE cppcheck)
+    if (POLYSQUARE_USE_CPPCHECK)
 
-    if (NOT CPPCHECK_EXECUTABLE)
+        find_program (CPPCHECK_EXECUTABLE cppcheck)
 
-        message (SEND_ERROR "cppcheck was not found")
+        if (NOT CPPCHECK_EXECUTABLE)
 
-    endif (NOT CPPCHECK_EXECUTABLE)
+            message (SEND_ERROR "cppcheck was not found")
 
-    mark_as_advanced (CPPCHECK_EXECUTABLE)
+        endif (NOT CPPCHECK_EXECUTABLE)
 
-    include (CPPCheck)
+        mark_as_advanced (CPPCHECK_EXECUTABLE)
 
-    set (_POLYSQUARE_BOOTSTRAPPED_CPPCHECK TRUE)
+        include (CPPCheck)
+
+        set (_POLYSQUARE_BOOTSTRAPPED_CPPCHECK TRUE)
+
+    else (POLYSQUARE_USE_CPPCHECK)
+
+        message (STATUS "CPPCheck static analysis has been disabled")
+
+    endif (POLYSQUARE_USE_CPPCHECK)
 
 endmacro (polysquare_cppcheck_bootstrap)
 
 function (polysquare_cppcheck_complete_scanning)
+
+    if (NOT POLYSQUARE_USE_CPPCHECK)
+
+        return ()
+
+    endif ()
 
     # Append all sources to unused function check
     add_custom_target (polysquare_check_unused ALL
