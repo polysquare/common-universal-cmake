@@ -318,6 +318,18 @@ function (polysquare_add_checked_sources TARGET)
 
     endif (NOT SOURCES_DESCRIPTION)
 
+    # Make sure that each source is marked as a "CXX" source.
+    # Some of the scanners will ignore source files which aren't
+    # CXX sources and we assume here that added files are valid
+    # C++.
+    foreach (SOURCE ${SOURCES_SOURCES})
+
+        set_source_files_properties (${SOURCE}
+                                     PROPERTIES LANGUAGE
+                                     CXX)
+
+    endforeach ()
+
     add_custom_target (${TARGET} ALL
                        SOURCES ${SOURCES_SOURCES}
                        DEPENDS ${SOURCES_SCANNED_STAMP}

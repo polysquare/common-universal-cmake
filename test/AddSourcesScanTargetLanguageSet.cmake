@@ -1,0 +1,23 @@
+# /tests/AddSourcesScanTargetLanguageSet.cmake
+# Checks that when we add sources for checks, the LANGUAGE
+# property is always set to "CXX".
+#
+# See LICENCE.md for Copyright information
+
+include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/PolysquareCommon.cmake)
+include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
+
+polysquare_rules_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
+                            ${CMAKE_CURRENT_BINARY_DIR}/polysquare)
+
+set (HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Header.h)
+file (WRITE ${HEADER_FILE} "\n")
+
+polysquare_add_checked_sources (headers_check
+                                SOURCES
+                                ${HEADER_FILE})
+
+assert_has_property_with_value (SOURCE ${HEADER_FILE}
+                                LANGUAGE STRING
+                                EQUAL
+                                "CXX")
