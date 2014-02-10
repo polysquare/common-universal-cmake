@@ -11,9 +11,9 @@
 include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
 
 set (VERAPP_RULES_DIR
-     ${CMAKE_CURRENT_BINARY_DIR}/vera++/scripts/rules)
+     ${CMAKE_CURRENT_BINARY_DIR}/scripts/vera++/scripts/rules)
 set (VERAPP_PROFILES_DIR
-     ${CMAKE_CURRENT_BINARY_DIR}/vera++/profiles)
+     ${CMAKE_CURRENT_BINARY_DIR}/scripts/vera++/profiles)
 
 assert_file_exists (${VERAPP_RULES_DIR}/PSQ001.tcl)
 assert_file_exists (${VERAPP_RULES_DIR}/PSQ002.tcl)
