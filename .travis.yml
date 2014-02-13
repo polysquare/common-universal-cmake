@@ -8,4 +8,5 @@ script:
   - mkdir -p test/build
   - cd test/build
   - cmake ..
+  - cmake --build `pwd`
   - ctest --output-on-failure

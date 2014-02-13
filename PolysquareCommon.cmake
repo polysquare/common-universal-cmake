@@ -236,13 +236,11 @@ function (polysquare_add_checks_to_target TARGET)
         endif (CHECKS_WARN_ONLY)
 
         set (_verapp_output_dir ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY})
-        set (_source_dir ${CMAKE_CURRENT_SOURCE_DIR})
         set (_verapp_profile ${_POLYSQUARE_VERAPP_PROFILE})
         set (_import_rules_target ${_POLYSQUARE_VERAPP_IMPORT_RULES})
 
 
         verapp_profile_check_source_files_conformance (${_verapp_output_dir}
-                                                       ${_source_dir}
                                                        ${_profile}
                                                        ${TARGET}
                                                        ${_import_rules_target}
