@@ -2,6 +2,9 @@
 # Main entry point for the common-universal-cmake tests.
 #
 # See LICENCE.md for Copyright information
+
+cmake_minimum_required (VERSION 2.8)
+
 function (_get_real_library_path LIBRARY RESULT)
 
     if (DEFINED LIBRARY)
