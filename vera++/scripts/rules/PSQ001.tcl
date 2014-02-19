@@ -10,7 +10,7 @@ foreach f [getSourceFileNames] {
         set type [lindex $t 3]
         set searchColumn [expr $column]
 
-        set leftIgnoreTokens { star and leftparen leftbracket rightbracket less }
+        set leftIgnoreTokens { star and not leftparen leftbracket rightbracket less }
 
         # Keep searching backwards until we hit either a token or the beginning
         # of the line. Error out if:
