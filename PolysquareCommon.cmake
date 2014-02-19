@@ -541,8 +541,7 @@ macro (_polysquare_add_gtest_includes_and_libraries EXTERNAL_INCLUDE_DIRS_VAR
     list (APPEND ${LIBRARIES_VAR}
           ${GTEST_LIBRARY}
           ${GMOCK_LIBRARY}
-          ${CMAKE_THREAD_LIBS_INIT}
-          ${GMOCK_MAIN_LIBRARY})
+          ${CMAKE_THREAD_LIBS_INIT})
 
 endmacro (_polysquare_add_gtest_includes_and_libraries)
 
@@ -573,7 +572,8 @@ function (polysquare_add_test TEST_NAME)
     set (TEST_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (TEST_SINGLEVAR_ARGS
-         EXPORT_HEADER_DIRECTORY)
+         EXPORT_HEADER_DIRECTORY
+         MAIN_LIBRARY)
     set (TEST_MULTIVAR_ARGS
          EXTERNAL_INCLUDE_DIRS
          INTERNAL_INCLUDE_DIRS
@@ -599,8 +599,16 @@ function (polysquare_add_test TEST_NAME)
 
     _polysquare_add_gtest_includes_and_libraries (TEST_EXTERNAL_INCLUDE_DIRS
                                                   TEST_LIBRARIES)
-    list (APPEND TEST_LIBRARIES
-          ${GMOCK_MAIN_LIBRARY})
+
+    if (TEST_MAIN_LIBRARY)
+
+        list (APPEND TEST_LIBRARIES ${TEST_MAIN_LIBRARY})
+
+    else (TEST_MAIN_LIBRARY)
+
+        list (APPEND TEST_LIBRARIES ${GMOCK_MAIN_LIBRARY})
+
+    endif (TEST_MAIN_LIBRARY)
 
     foreach (MATCHER ${TEST_MATCHERS})
 
@@ -638,6 +646,65 @@ function (polysquare_add_test TEST_NAME)
                                ${TEST_WARN_ONLY})
 
 endfunction (polysquare_add_test)
+
+function (polysquare_add_test_main MAIN_LIBRARY_NAME)
+
+    if (NOT POLYSQUARE_BUILD_TESTS)
+
+        return ()
+
+    endif (NOT POLYSQUARE_BUILD_TESTS)
+
+    set (MAIN_LIBRARY_OPTION_ARGS
+         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+    set (MAIN_LIBRARY_SINGLEVAR_ARGS
+         EXPORT_HEADER_DIRECTORY)
+    set (MAIN_LIBRARY_MULTIVAR_ARGS
+         EXTERNAL_INCLUDE_DIRS
+         INTERNAL_INCLUDE_DIRS
+         LIBRARIES
+         SOURCES
+         GENERATED_SOURCES)
+
+    cmake_parse_arguments (MAIN_LIBRARY
+                           "${MAIN_LIBRARY_OPTION_ARGS}"
+                           "${MAIN_LIBRARY_SINGLEVAR_ARGS}"
+                           "${MAIN_LIBRARY_MULTIVAR_ARGS}"
+                           ${ARGN})
+
+    if (MAIN_LIBRARY_UNPARSED_ARGUMENTS)
+
+        message (FATAL_ERROR
+                 "Unrecognized arguments ${MAIN_LIBRARY_UNPARSED_ARUGMENTS}"
+                 " given to polysquare_add_main_library")
+
+    endif (MAIN_LIBRARY_UNPARSED_ARGUMENTS)
+
+    set (MAIN_LIB_EXT_INC_DIRS ${MAIN_LIBRARY_EXTERNAL_INCLUDE_DIRS})
+
+    _polysquare_add_gtest_includes_and_libraries (MAIN_LIB_EXT_INC_DIRS
+                                                  MAIN_LIBRARY_LIBRARIES)
+
+    _clear_variable_names_if_false (MAIN_LIBRARY
+                                    NO_CPPCHECK
+                                    NO_VERAPP
+                                    WARN_ONLY)
+
+    polysquare_add_library (${MAIN_LIBRARY_NAME} STATIC
+                            EXTERNAL_INCLUDE_DIRS
+                            ${MAIN_LIBRARY_EXTERNAL_INCLUDE_DIRS}
+                            INTERNAL_INCLUDE_DIRS
+                            ${MAIN_LIBRARY_INTERNAL_INCLUDE_DIRS}
+                            LIBRARIES ${MAIN_LIBRARY_LIBRARIES}
+                            SOURCES ${MAIN_LIBRARY_SOURCES}
+                            GENERATED_SOURCES ${MAIN_LIBRARY_GENERATED_SOURCES}
+                            EXPORT_HEADER_DIRECTORY
+                            ${MAIN_LIBRARY_EXPORT_HEADER_DIRECTORY}
+                            ${MAIN_LIBRARY_NO_CPPCHECK}
+                            ${MAIN_LIBRARY_NO_VERAPP}
+                            ${MAIN_LIBRARY_WARN_ONLY})
+
+endfunction (polysquare_add_test_main)
 
 function (polysquare_add_matcher MATCHER_NAME)
 
