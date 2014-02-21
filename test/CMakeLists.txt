@@ -100,6 +100,8 @@ add_cmake_build_test (AddTestTargetLinkedToLibraries VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMatcher VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMock VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMainLibrary VerifyGTest)
+add_cmake_build_test (ExternalHeadersAreSystemHeaders
+                      ExternalHeadersAreSystemHeadersVerify)
 add_cmake_build_test (PolysquareVeraPPRulesCopiedOnDependentTargetBuild
                       PolysquareVeraPPRulesCopiedOnDependentTargetBuildVerify)
 add_cmake_build_test (NoCPPCheckOption
