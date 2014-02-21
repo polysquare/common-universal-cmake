@@ -360,8 +360,7 @@ function (_polysquare_add_target_internal TARGET)
          LIBRARIES
          INTERNAL_INCLUDE_DIRS
          EXTERNAL_INCLUDE_DIRS
-         SOURCES
-         GENERATED_SOURCES)
+         SOURCES)
 
     cmake_parse_arguments (TARGET
                            "${TARGET_OPTION_ARGS}"
@@ -401,17 +400,6 @@ function (_polysquare_add_target_internal TARGET)
 
     endif (TARGET_EXPORT_HEADER_DIRECTORY)
 
-    # If we had any generated sources then we'll need to add a dependency
-    # on each of the sources we used to generate this target to ensure that
-    # they are always generated before building this target
-    foreach (SOURCE ${TARGET_SOURCES})
-
-        set_property (SOURCE ${SOURCE}
-                      PROPERTY OBJECT_DEPENDS
-                      ${TARGET_GENERATED_SOURCES})
-
-    endforeach ()
-
     _clear_variable_names_if_false (TARGET
                                     NO_CPPCHECK
                                     NO_VERAPP
@@ -436,8 +424,7 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
          EXTERNAL_INCLUDE_DIRS
          INTERNAL_INCLUDE_DIRS
          LIBRARIES
-         SOURCES
-         GENERATED_SOURCES)
+         SOURCES)
 
     cmake_parse_arguments (LIBRARY
                            "${LIBRARY_OPTION_ARGS}"
@@ -469,8 +456,6 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
                                      ${LIBRARY_INTERNAL_INCLUDE_DIRS}
                                      LIBRARIES ${LIBRARY_LIBRARIES}
                                      SOURCES ${LIBRARY_SOURCES}
-                                     GENERATED_SOURCES
-                                     ${LIBRARY_GENERATED_SOURCES}
                                      EXPORT_HEADER_DIRECTORY
                                      ${LIBRARY_EXPORT_HEADER_DIRECTORY}
                                      ${LIBRARY_NO_CPPCHECK}
@@ -489,8 +474,7 @@ function (polysquare_add_executable EXECUTABLE_NAME)
          EXTERNAL_INCLUDE_DIRS
          INTERNAL_INCLUDE_DIRS
          LIBRARIES
-         SOURCES
-         GENERATED_SOURCES)
+         SOURCES)
 
     cmake_parse_arguments (EXECUTABLE
                            "${EXECUTABLE_OPTION_ARGS}"
@@ -521,8 +505,6 @@ function (polysquare_add_executable EXECUTABLE_NAME)
                                      ${EXECUTABLE_INTERNAL_INCLUDE_DIRS}
                                      LIBRARIES ${EXECUTABLE_LIBRARIES}
                                      SOURCES ${EXECUTABLE_SOURCES}
-                                     GENERATED_SOURCES
-                                     ${EXECUTABLE_GENERATED_SOURCES}
                                      EXPORT_HEADER_DIRECTORY
                                      ${EXECUTABLE_EXPORT_HEADER_DIRECTORY}
                                      ${EXECUTABLE_NO_CPPCHECK}
@@ -579,7 +561,6 @@ function (polysquare_add_test TEST_NAME)
          INTERNAL_INCLUDE_DIRS
          LIBRARIES
          SOURCES
-         GENERATED_SOURCES
          MATCHERS
          MOCKS)
 
@@ -638,7 +619,6 @@ function (polysquare_add_test TEST_NAME)
                                ${TEST_INTERNAL_INCLUDE_DIRS}
                                LIBRARIES ${TEST_LIBRARIES}
                                SOURCES ${TEST_SOURCES}
-                               GENERATED_SOURCES ${TEST_GENERATED_SOURCES}
                                EXPORT_HEADER_DIRECTORY
                                ${TEST_EXPORT_HEADER_DIRECTORY}
                                ${TEST_NO_CPPCHECK}
@@ -663,8 +643,7 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
          EXTERNAL_INCLUDE_DIRS
          INTERNAL_INCLUDE_DIRS
          LIBRARIES
-         SOURCES
-         GENERATED_SOURCES)
+         SOURCES)
 
     cmake_parse_arguments (MAIN_LIBRARY
                            "${MAIN_LIBRARY_OPTION_ARGS}"
@@ -697,7 +676,6 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
                             ${MAIN_LIBRARY_INTERNAL_INCLUDE_DIRS}
                             LIBRARIES ${MAIN_LIBRARY_LIBRARIES}
                             SOURCES ${MAIN_LIBRARY_SOURCES}
-                            GENERATED_SOURCES ${MAIN_LIBRARY_GENERATED_SOURCES}
                             EXPORT_HEADER_DIRECTORY
                             ${MAIN_LIBRARY_EXPORT_HEADER_DIRECTORY}
                             ${MAIN_LIBRARY_NO_CPPCHECK}
@@ -722,8 +700,7 @@ function (polysquare_add_matcher MATCHER_NAME)
          EXTERNAL_INCLUDE_DIRS
          INTERNAL_INCLUDE_DIRS
          LIBRARIES
-         SOURCES
-         GENERATED_SOURCES)
+         SOURCES)
 
     cmake_parse_arguments (MATCHER
                            "${MATCHER_OPTION_ARGS}"
@@ -754,7 +731,6 @@ function (polysquare_add_matcher MATCHER_NAME)
                             ${MATCHER_INTERNAL_INCLUDE_DIRS}
                             LIBRARIES ${MATCHER_LIBRARIES}
                             SOURCES ${MATCHER_SOURCES}
-                            GENERATED_SOURCES ${MATCHER_GENERATED_SOURCES}
                             EXPORT_HEADER_DIRECTORY
                             ${MATCHER_EXPORT_HEADER_DIRECTORY}
                             ${MATCHER_NO_CPPCHECK}
@@ -779,8 +755,7 @@ function (polysquare_add_mock MOCK_NAME)
          EXTERNAL_INCLUDE_DIRS
          INTERNAL_INCLUDE_DIRS
          LIBRARIES
-         SOURCES
-         GENERATED_SOURCES)
+         SOURCES)
 
     cmake_parse_arguments (MOCK
                            "${MOCK_OPTION_ARGS}"
@@ -809,7 +784,6 @@ function (polysquare_add_mock MOCK_NAME)
                             INTERNAL_INCLUDE_DIRS ${MOCK_INTERNAL_INCLUDE_DIRS}
                             LIBRARIES ${MOCK_LIBRARIES}
                             SOURCES ${MOCK_SOURCES}
-                            GENERATED_SOURCES ${MOCK_GENERATED_SOURCES}
                             EXPORT_HEADER_DIRECTORY
                             ${MOCK_EXPORT_HEADER_DIRECTORY}
                             ${MOCK_NO_CPPCHECK}
