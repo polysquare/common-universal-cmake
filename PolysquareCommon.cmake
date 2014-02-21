@@ -382,8 +382,8 @@ function (_polysquare_add_target_internal TARGET)
         # don't have per-target INCLUDE_DIRECTORIES, so we'll need to
         # add it to the directory level at this point.
 
-        include_directories (${TARGET_INTERNAL_INCLUDE_DIRS}
-                             ${TARGET_EXTERNAL_INCLUDE_DIRS})
+        include_directories (SYSTEM ${TARGET_EXTERNAL_INCLUDE_DIRS})
+        include_directories (${TARGET_INTERNAL_INCLUDE_DIRS})
 
         # set_property (TARGET ${TARGET}
         #               PROPERTY INCLUDE_DIRECTORIES
