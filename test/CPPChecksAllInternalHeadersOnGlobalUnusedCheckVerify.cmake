@@ -11,7 +11,7 @@ set (BUILD_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/BUILD.output)
 # "Checking for unused functions" and ending at "polysquare_check_unused"
 file (READ ${BUILD_OUTPUT} CONTENTS)
 string (LENGTH ${CONTENTS} TOTAL_CONTENTS_LENGTH)
-string (FIND ${CONTENTS} "Checking for unused functions" START_INDEX)
+string (FIND ${CONTENTS} "Running unused function check" START_INDEX)
 math (EXPR TRUNCATED_LENGTH "${TOTAL_CONTENTS_LENGTH} - ${START_INDEX}")
 string (SUBSTRING ${CONTENTS} ${START_INDEX} ${TRUNCATED_LENGTH} START_POINT)
 string (FIND ${START_POINT} "polysquare_check_unused" END_INDEX)

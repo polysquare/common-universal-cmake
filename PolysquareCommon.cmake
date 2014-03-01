@@ -82,17 +82,7 @@ function (polysquare_cppcheck_complete_scanning)
 
     endif ()
 
-    # Append all sources to unused function check
-    add_custom_target (polysquare_check_unused ALL
-                       COMMENT "Checking for unused functions")
-
-    get_property (INTERNAL_INCLUDES
-                  GLOBAL
-                  PROPERTY _POLYSQUARE_INTERNAL_INCLUDES)
-
-    cppcheck_add_global_unused_function_check_to_target (polysquare_check_unused
-                                                         INCLUDES
-                                                         ${INTERNAL_INCLUDES})
+    cppcheck_add_unused_function_check_with_name (polysquare_check_all_unused)
 
 endfunction (polysquare_cppcheck_complete_scanning)
 
@@ -253,6 +243,16 @@ function (polysquare_add_checks_to_target TARGET)
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
                                  ${CHECKS_INTERNAL_INCLUDE_DIRS})
+
+        get_property (TARGET_SOURCES
+                      TARGET ${TARGET}
+                      PROPERTY SOURCES)
+
+        cppcheck_add_to_unused_function_check (polysquare_check_all_unused
+                                               SOURCES ${TARGET_SOURCES}
+                                               INCLUDES
+                                               ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                                               CHECK_GENERATED)
 
     endif (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
