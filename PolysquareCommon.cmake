@@ -82,7 +82,13 @@ function (polysquare_cppcheck_complete_scanning)
 
     endif ()
 
-    cppcheck_add_unused_function_check_with_name (polysquare_check_all_unused)
+    cppcheck_get_unused_function_checks (UNUSED_CHECKS)
+
+    foreach (CHECK ${UNUSED_CHECKS})
+
+        cppcheck_add_unused_function_check_with_name (${CHECK})
+
+    endforeach (CHECK ${UNUSED_CHECKS})
 
 endfunction (polysquare_cppcheck_complete_scanning)
 
@@ -198,12 +204,15 @@ function (polysquare_add_checks_to_target TARGET)
     set (ADD_CHECKS_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
 
+    set (ADD_CHECKS_SINGLEVAR_ARGS
+         UNUSED_CHECK_GROUP)
+
     set (ADD_CHECKS_MULTIVAR_ARGS
          INTERNAL_INCLUDE_DIRS)
 
     cmake_parse_arguments (CHECKS
                            "${ADD_CHECKS_OPTION_ARGS}"
-                           ""
+                           "${ADD_CHECKS_SINGLEVAR_ARGS}"
                            "${ADD_CHECKS_MULTIVAR_ARGS}"
                            ${ARGN})
 
@@ -248,7 +257,14 @@ function (polysquare_add_checks_to_target TARGET)
                       TARGET ${TARGET}
                       PROPERTY SOURCES)
 
-        cppcheck_add_to_unused_function_check (polysquare_check_all_unused
+        set (CHECK_NAME polysquare_check_all_unused)
+        if (CHECKS_UNUSED_CHECK_GROUP)
+
+            set (CHECK_NAME ${CHECKS_UNUSED_CHECK_GROUP})
+
+        endif (CHECKS_UNUSED_CHECK_GROUP)
+
+        cppcheck_add_to_unused_function_check (${CHECK_NAME}
                                                SOURCES ${TARGET_SOURCES}
                                                INCLUDES
                                                ${CHECKS_INTERNAL_INCLUDE_DIRS}
@@ -283,6 +299,7 @@ function (polysquare_add_checked_sources TARGET)
     set (SOURCES_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (SOURCES_SINGLEVAR_ARGS
+         UNUSED_CHECK_GROUP
          DESCRIPTION)
     set (SOURCES_MULTIVAR_ARGS
          SOURCES
@@ -344,6 +361,8 @@ function (polysquare_add_checked_sources TARGET)
     polysquare_add_checks_to_target (${TARGET}
                                      INTERNAL_INCLUDE_DIRS
                                      ${SOURCES_INTERNAL_INCLUDE_DIRS}
+                                     UNUSED_CHECK_GROUP
+                                     ${SOURCES_UNUSED_CHECK_GROUP}
                                      ${SOURCES_NO_CPPCHECK}
                                      ${SOURCES_NO_VERAPP}
                                      ${SOURCES_WARN_ONLY})
@@ -355,7 +374,8 @@ function (_polysquare_add_target_internal TARGET)
     set (TARGET_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (TARGET_SINGLEVAR_ARGS
-         EXPORT_HEADER_DIRECTORY)
+         EXPORT_HEADER_DIRECTORY
+         UNUSED_CHECK_GROUP)
     set (TARGET_MULTIVAR_ARGS
          LIBRARIES
          INTERNAL_INCLUDE_DIRS
@@ -408,6 +428,8 @@ function (_polysquare_add_target_internal TARGET)
     polysquare_add_checks_to_target (${TARGET}
                                      INTERNAL_INCLUDE_DIRS
                                      ${TARGET_INTERNAL_INCLUDE_DIRS}
+                                     UNUSED_CHECK_GROUP
+                                     ${TARGET_UNUSED_CHECK_GROUP}
                                      ${TARGET_NO_CPPCHECK}
                                      ${TARGET_NO_VERAPP}
                                      ${TARGET_WARN_ONLY})
@@ -419,6 +441,7 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
     set (LIBRARY_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (LIBRARY_SINGLEVAR_ARGS
+         UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
     set (LIBRARY_MULTIVAR_ARGS
          EXTERNAL_INCLUDE_DIRS
@@ -458,6 +481,8 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
                                      SOURCES ${LIBRARY_SOURCES}
                                      EXPORT_HEADER_DIRECTORY
                                      ${LIBRARY_EXPORT_HEADER_DIRECTORY}
+                                     UNUSED_CHECK_GROUP
+                                     ${LIBRARY_UNUSED_CHECK_GROUP}
                                      ${LIBRARY_NO_CPPCHECK}
                                      ${LIBRARY_NO_VERAPP}
                                      ${LIBRARY_WARN_ONLY})
@@ -469,6 +494,7 @@ function (polysquare_add_executable EXECUTABLE_NAME)
     set (EXECUTABLE_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (EXECUTABLE_SINGLEVAR_ARGS
+         UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
     set (EXECUTABLE_MULTIVAR_ARGS
          EXTERNAL_INCLUDE_DIRS
@@ -507,6 +533,8 @@ function (polysquare_add_executable EXECUTABLE_NAME)
                                      SOURCES ${EXECUTABLE_SOURCES}
                                      EXPORT_HEADER_DIRECTORY
                                      ${EXECUTABLE_EXPORT_HEADER_DIRECTORY}
+                                     UNUSED_CHECK_GROUP
+                                     ${EXECUTABLE_UNUSED_CHECK_GROUP}
                                      ${EXECUTABLE_NO_CPPCHECK}
                                      ${EXECUTABLE_NO_VERAPP}
                                      ${EXECUTABLE_WARN_ONLY})
@@ -554,6 +582,7 @@ function (polysquare_add_test TEST_NAME)
     set (TEST_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (TEST_SINGLEVAR_ARGS
+         UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY
          MAIN_LIBRARY)
     set (TEST_MULTIVAR_ARGS
@@ -621,6 +650,8 @@ function (polysquare_add_test TEST_NAME)
                                SOURCES ${TEST_SOURCES}
                                EXPORT_HEADER_DIRECTORY
                                ${TEST_EXPORT_HEADER_DIRECTORY}
+                               UNUSED_CHECK_GROUP
+                               ${TEST_UNUSED_CHECK_GROUP}
                                ${TEST_NO_CPPCHECK}
                                ${TEST_NO_VERAPP}
                                ${TEST_WARN_ONLY})
@@ -638,6 +669,7 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
     set (MAIN_LIBRARY_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (MAIN_LIBRARY_SINGLEVAR_ARGS
+         UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
     set (MAIN_LIBRARY_MULTIVAR_ARGS
          EXTERNAL_INCLUDE_DIRS
@@ -678,6 +710,8 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
                             SOURCES ${MAIN_LIBRARY_SOURCES}
                             EXPORT_HEADER_DIRECTORY
                             ${MAIN_LIBRARY_EXPORT_HEADER_DIRECTORY}
+                            UNUSED_CHECK_GROUP
+                            ${MAIN_LIBRARY_UNUSED_CHECK_GROUP}
                             ${MAIN_LIBRARY_NO_CPPCHECK}
                             ${MAIN_LIBRARY_NO_VERAPP}
                             ${MAIN_LIBRARY_WARN_ONLY})
@@ -695,6 +729,7 @@ function (polysquare_add_matcher MATCHER_NAME)
     set (MATCHER_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (MATCHER_SINGLEVAR_ARGS
+         UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
     set (MATCHER_MULTIVAR_ARGS
          EXTERNAL_INCLUDE_DIRS
@@ -733,6 +768,8 @@ function (polysquare_add_matcher MATCHER_NAME)
                             SOURCES ${MATCHER_SOURCES}
                             EXPORT_HEADER_DIRECTORY
                             ${MATCHER_EXPORT_HEADER_DIRECTORY}
+                            UNUSED_CHECK_GROUP
+                            ${MATCHER_UNUSED_CHECK_GROUP}
                             ${MATCHER_NO_CPPCHECK}
                             ${MATCHER_NO_VERAPP}
                             ${MATCHER_WARN_ONLY})
@@ -750,6 +787,7 @@ function (polysquare_add_mock MOCK_NAME)
     set (MOCK_OPTION_ARGS
          NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
     set (MOCK_SINGLEVAR_ARGS
+         UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
     set (MOCK_MULTIVAR_ARGS
          EXTERNAL_INCLUDE_DIRS
@@ -786,6 +824,8 @@ function (polysquare_add_mock MOCK_NAME)
                             SOURCES ${MOCK_SOURCES}
                             EXPORT_HEADER_DIRECTORY
                             ${MOCK_EXPORT_HEADER_DIRECTORY}
+                            UNUSED_CHECK_GROUP
+                            ${MOCK_UNUSED_CHECK_GROUP}
                             ${MOCK_NO_CPPCHECK}
                             ${MOCK_NO_VERAPP}
                             ${MOCK_WARN_ONLY})

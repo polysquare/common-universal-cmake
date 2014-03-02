@@ -121,7 +121,10 @@ add_cmake_build_test (CPPCheckRunWithCorrectIncludeDirs
                       CPPCheckRunWithCorrectIncludeDirsVerify)
 add_cmake_build_test (CPPChecksAllInternalHeadersOnGlobalUnusedCheck
                       CPPChecksAllInternalHeadersOnGlobalUnusedCheckVerify)
+add_cmake_build_test (OverrideUnusedCheckWithGroupProperty
+                      OverrideUnusedCheckWithGroupPropertyVerify)
 add_cmake_test (AddMatcherTarget)
 add_cmake_test (MatcherTargetHasExportedDetails)
 add_cmake_test (AddMockTarget)
 add_cmake_test (MockTargetHasExportedDetails)
+add_cmake_test (GlobalUnusedFunctionCheckByDefault)
