@@ -259,10 +259,6 @@ function (polysquare_add_checks_to_target TARGET)
 
         if (NOT CHECKS_NO_UNUSED_CHECK)
 
-            get_property (TARGET_SOURCES
-                          TARGET ${TARGET}
-                          PROPERTY SOURCES)
-
             # CHECK_GENERATED is on by default unless explicitly disabled.
             set (CHECK_GENERATED CHECK_GENERATED)
             if (CHECKS_NO_UNUSED_GENERATED_CHECK)
@@ -279,12 +275,18 @@ function (polysquare_add_checks_to_target TARGET)
             endif (CHECKS_UNUSED_CHECK_GROUP)
 
             set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS})
-            cppcheck_add_to_unused_function_check (${CHECK_NAME}
-                                                   SOURCES
-                                                   ${TARGET_SOURCES}
-                                                   INCLUDES
-                                                   ${INCDIRS}
-                                                   ${CHECK_GENERATED})
+            set (SOURCES ${TARGET_SOURCES})
+            set (CHECKGEN ${CHECK_GENERATED})
+
+            # Using this function will have the side-effect of requiring that
+            # TARGET is built before CHECK_NAME.
+            cppcheck_add_target_sources_to_unused_function_check (${TARGET}
+                                                                  ${CHECK_NAME}
+                                                                  SOURCES
+                                                                  ${SOURCES}
+                                                                  INCLUDES
+                                                                  ${INCDIRS}
+                                                                  ${CHECKGEN})
 
         endif (NOT CHECKS_NO_UNUSED_CHECK)
 
