@@ -3,6 +3,13 @@
 #
 # See LICENCE.md for Copyright information
 
+if (POLICY CMP0025)
+
+    cmake_policy (SET CMP0025 NEW)
+
+endif (POLICY CMP0025)
+
+project (PolysquareCommonUniversalCMakeTests)
 cmake_minimum_required (VERSION 2.8)
 
 function (_get_real_library_path LIBRARY RESULT)
@@ -106,6 +113,10 @@ add_cmake_build_test (PolysquareVeraPPRulesCopiedOnDependentTargetBuild
                       PolysquareVeraPPRulesCopiedOnDependentTargetBuildVerify)
 add_cmake_build_test (NoCPPCheckOption
                       NoCPPCheckOptionVerify)
+add_cmake_build_test (NoCPPCheckUnusedOption
+                      NoCPPCheckUnusedOptionVerify)
+add_cmake_build_test (NoCPPCheckUnusedGeneratedOption
+                      NoCPPCheckUnusedGeneratedOptionVerify)
 add_cmake_build_test (NoVeraPPOption
                       NoVeraPPOptionVerify)
 add_cmake_build_test (VeraPPWithPolysquareProfileRunOnTargetWithRules
@@ -114,7 +125,10 @@ add_cmake_build_test (CPPCheckRunWithCorrectIncludeDirs
                       CPPCheckRunWithCorrectIncludeDirsVerify)
 add_cmake_build_test (CPPChecksAllInternalHeadersOnGlobalUnusedCheck
                       CPPChecksAllInternalHeadersOnGlobalUnusedCheckVerify)
+add_cmake_build_test (OverrideUnusedCheckWithGroupProperty
+                      OverrideUnusedCheckWithGroupPropertyVerify)
 add_cmake_test (AddMatcherTarget)
 add_cmake_test (MatcherTargetHasExportedDetails)
 add_cmake_test (AddMockTarget)
 add_cmake_test (MockTargetHasExportedDetails)
+add_cmake_test (GlobalUnusedFunctionCheckByDefault)
