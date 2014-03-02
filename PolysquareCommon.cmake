@@ -202,7 +202,11 @@ endmacro (polysquare_gmock_bootstrap)
 function (polysquare_add_checks_to_target TARGET)
 
     set (ADD_CHECKS_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
 
     set (ADD_CHECKS_SINGLEVAR_ARGS
          UNUSED_CHECK_GROUP)
@@ -253,22 +257,36 @@ function (polysquare_add_checks_to_target TARGET)
                                  INCLUDES
                                  ${CHECKS_INTERNAL_INCLUDE_DIRS})
 
-        get_property (TARGET_SOURCES
-                      TARGET ${TARGET}
-                      PROPERTY SOURCES)
+        if (NOT CHECKS_NO_UNUSED_CHECK)
 
-        set (CHECK_NAME polysquare_check_all_unused)
-        if (CHECKS_UNUSED_CHECK_GROUP)
+            get_property (TARGET_SOURCES
+                          TARGET ${TARGET}
+                          PROPERTY SOURCES)
 
-            set (CHECK_NAME ${CHECKS_UNUSED_CHECK_GROUP})
+            # CHECK_GENERATED is on by default unless explicitly disabled.
+            set (CHECK_GENERATED CHECK_GENERATED)
+            if (CHECKS_NO_UNUSED_GENERATED_CHECK)
 
-        endif (CHECKS_UNUSED_CHECK_GROUP)
+                set (CHECK_GENERATED)
 
-        cppcheck_add_to_unused_function_check (${CHECK_NAME}
-                                               SOURCES ${TARGET_SOURCES}
-                                               INCLUDES
-                                               ${CHECKS_INTERNAL_INCLUDE_DIRS}
-                                               CHECK_GENERATED)
+            endif (CHECKS_NO_UNUSED_GENERATED_CHECK)
+
+            set (CHECK_NAME polysquare_check_all_unused)
+            if (CHECKS_UNUSED_CHECK_GROUP)
+
+                set (CHECK_NAME ${CHECKS_UNUSED_CHECK_GROUP})
+
+            endif (CHECKS_UNUSED_CHECK_GROUP)
+
+            set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS})
+            cppcheck_add_to_unused_function_check (${CHECK_NAME}
+                                                   SOURCES
+                                                   ${TARGET_SOURCES}
+                                                   INCLUDES
+                                                   ${INCDIRS}
+                                                   ${CHECK_GENERATED})
+
+        endif (NOT CHECKS_NO_UNUSED_CHECK)
 
     endif (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
@@ -297,7 +315,11 @@ endfunction (_clear_variable_names_if_false)
 function (polysquare_add_checked_sources TARGET)
 
     set (SOURCES_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
     set (SOURCES_SINGLEVAR_ARGS
          UNUSED_CHECK_GROUP
          DESCRIPTION)
@@ -321,6 +343,8 @@ function (polysquare_add_checked_sources TARGET)
 
     _clear_variable_names_if_false (SOURCES
                                     NO_CPPCHECK
+                                    NO_UNUSED_CHECK
+                                    NO_UNUSED_GENERATED_CHECK
                                     NO_VERAPP
                                     WARN_ONLY)
 
@@ -364,6 +388,8 @@ function (polysquare_add_checked_sources TARGET)
                                      UNUSED_CHECK_GROUP
                                      ${SOURCES_UNUSED_CHECK_GROUP}
                                      ${SOURCES_NO_CPPCHECK}
+                                     ${SOURCES_NO_UNUSED_CHECK}
+                                     ${SOURCES_NO_UNUSED_GENERATED_CHECK}
                                      ${SOURCES_NO_VERAPP}
                                      ${SOURCES_WARN_ONLY})
 
@@ -372,7 +398,11 @@ endfunction (polysquare_add_checked_sources)
 function (_polysquare_add_target_internal TARGET)
 
     set (TARGET_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
     set (TARGET_SINGLEVAR_ARGS
          EXPORT_HEADER_DIRECTORY
          UNUSED_CHECK_GROUP)
@@ -422,6 +452,8 @@ function (_polysquare_add_target_internal TARGET)
 
     _clear_variable_names_if_false (TARGET
                                     NO_CPPCHECK
+                                    NO_UNUSED_CHECK
+                                    NO_UNUSED_GENERATED_CHECK
                                     NO_VERAPP
                                     WARN_ONLY)
 
@@ -431,6 +463,8 @@ function (_polysquare_add_target_internal TARGET)
                                      UNUSED_CHECK_GROUP
                                      ${TARGET_UNUSED_CHECK_GROUP}
                                      ${TARGET_NO_CPPCHECK}
+                                     ${TARGET_NO_UNUSED_CHECK}
+                                     ${TARGET_NO_UNUSED_GENERATED_CHECK}
                                      ${TARGET_NO_VERAPP}
                                      ${TARGET_WARN_ONLY})
 
@@ -439,7 +473,11 @@ endfunction (_polysquare_add_target_internal)
 function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
 
     set (LIBRARY_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
     set (LIBRARY_SINGLEVAR_ARGS
          UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
@@ -469,6 +507,8 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
 
     _clear_variable_names_if_false (LIBRARY
                                     NO_CPPCHECK
+                                    NO_UNUSED_CHECK
+                                    NO_UNUSED_GENERATED_CHECK
                                     NO_VERAPP
                                     WARN_ONLY)
 
@@ -484,6 +524,8 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
                                      UNUSED_CHECK_GROUP
                                      ${LIBRARY_UNUSED_CHECK_GROUP}
                                      ${LIBRARY_NO_CPPCHECK}
+                                     ${LIBRARY_NO_UNUSED_CHECK}
+                                     ${LIBRARY_NO_UNUSED_GENERATED_CHECK}
                                      ${LIBRARY_NO_VERAPP}
                                      ${LIBRARY_WARN_ONLY})
 
@@ -492,7 +534,11 @@ endfunction (polysquare_add_library)
 function (polysquare_add_executable EXECUTABLE_NAME)
 
     set (EXECUTABLE_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
     set (EXECUTABLE_SINGLEVAR_ARGS
          UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
@@ -521,6 +567,8 @@ function (polysquare_add_executable EXECUTABLE_NAME)
 
     _clear_variable_names_if_false (EXECUTABLE
                                     NO_CPPCHECK
+                                    NO_UNUSED_CHECK
+                                    NO_UNUSED_GENERATED_CHECK
                                     NO_VERAPP
                                     WARN_ONLY)
 
@@ -536,6 +584,8 @@ function (polysquare_add_executable EXECUTABLE_NAME)
                                      UNUSED_CHECK_GROUP
                                      ${EXECUTABLE_UNUSED_CHECK_GROUP}
                                      ${EXECUTABLE_NO_CPPCHECK}
+                                     ${EXECUTABLE_NO_UNUSED_CHECK}
+                                     ${EXECUTABLE_NO_UNUSED_GENERATED_CHECK}
                                      ${EXECUTABLE_NO_VERAPP}
                                      ${EXECUTABLE_WARN_ONLY})
 
@@ -580,7 +630,11 @@ function (polysquare_add_test TEST_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (TEST_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
     set (TEST_SINGLEVAR_ARGS
          UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY
@@ -638,6 +692,8 @@ function (polysquare_add_test TEST_NAME)
 
     _clear_variable_names_if_false (TEST
                                     NO_CPPCHECK
+                                    NO_UNUSED_CHECK
+                                    NO_UNUSED_GENERATED_CHECK
                                     NO_VERAPP
                                     WARN_ONLY)
 
@@ -653,6 +709,8 @@ function (polysquare_add_test TEST_NAME)
                                UNUSED_CHECK_GROUP
                                ${TEST_UNUSED_CHECK_GROUP}
                                ${TEST_NO_CPPCHECK}
+                               ${TEST_NO_UNUSED_CHECK}
+                               ${TEST_NO_UNUSED_GENERATED_CHECK}
                                ${TEST_NO_VERAPP}
                                ${TEST_WARN_ONLY})
 
@@ -667,7 +725,11 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MAIN_LIBRARY_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
     set (MAIN_LIBRARY_SINGLEVAR_ARGS
          UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
@@ -698,6 +760,8 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
 
     _clear_variable_names_if_false (MAIN_LIBRARY
                                     NO_CPPCHECK
+                                    NO_UNUSED_CHECK
+                                    NO_UNUSED_GENERATED_CHECK
                                     NO_VERAPP
                                     WARN_ONLY)
 
@@ -713,6 +777,8 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
                             UNUSED_CHECK_GROUP
                             ${MAIN_LIBRARY_UNUSED_CHECK_GROUP}
                             ${MAIN_LIBRARY_NO_CPPCHECK}
+                            ${MAIN_LIBRARY_NO_UNUSED_CHECK}
+                            ${MAIN_LIBRARY_NO_UNUSED_GENERATED_CHECK}
                             ${MAIN_LIBRARY_NO_VERAPP}
                             ${MAIN_LIBRARY_WARN_ONLY})
 
@@ -727,7 +793,11 @@ function (polysquare_add_matcher MATCHER_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MATCHER_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
     set (MATCHER_SINGLEVAR_ARGS
          UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
@@ -756,6 +826,8 @@ function (polysquare_add_matcher MATCHER_NAME)
 
     _clear_variable_names_if_false (MATCHER
                                     NO_CPPCHECK
+                                    NO_UNUSED_CHECK
+                                    NO_UNUSED_GENERATED_CHECK
                                     NO_VERAPP
                                     WARN_ONLY)
 
@@ -771,6 +843,8 @@ function (polysquare_add_matcher MATCHER_NAME)
                             UNUSED_CHECK_GROUP
                             ${MATCHER_UNUSED_CHECK_GROUP}
                             ${MATCHER_NO_CPPCHECK}
+                            ${MATCHER_NO_UNUSED_CHECK}
+                            ${MATCHER_NO_UNUSED_GENERATED_CHECK}
                             ${MATCHER_NO_VERAPP}
                             ${MATCHER_WARN_ONLY})
 
@@ -785,7 +859,11 @@ function (polysquare_add_mock MOCK_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MOCK_OPTION_ARGS
-         NO_CPPCHECK;NO_VERAPP;WARN_ONLY)
+         NO_CPPCHECK
+         NO_UNUSED_CHECK
+         NO_UNUSED_GENERATED_CHECK
+         NO_VERAPP
+         WARN_ONLY)
     set (MOCK_SINGLEVAR_ARGS
          UNUSED_CHECK_GROUP
          EXPORT_HEADER_DIRECTORY)
@@ -814,6 +892,8 @@ function (polysquare_add_mock MOCK_NAME)
 
     _clear_variable_names_if_false (MOCK
                                     NO_CPPCHECK
+                                    NO_UNUSED_CHECK
+                                    NO_UNUSED_GENERATED_CHECK
                                     NO_VERAPP
                                     WARN_ONLY)
 
@@ -827,6 +907,8 @@ function (polysquare_add_mock MOCK_NAME)
                             UNUSED_CHECK_GROUP
                             ${MOCK_UNUSED_CHECK_GROUP}
                             ${MOCK_NO_CPPCHECK}
+                            ${MOCK_NO_UNUSED_CHECK}
+                            ${MOCK_NO_UNUSED_GENERATED_CHECK}
                             ${MOCK_NO_VERAPP}
                             ${MOCK_WARN_ONLY})
 

@@ -113,6 +113,10 @@ add_cmake_build_test (PolysquareVeraPPRulesCopiedOnDependentTargetBuild
                       PolysquareVeraPPRulesCopiedOnDependentTargetBuildVerify)
 add_cmake_build_test (NoCPPCheckOption
                       NoCPPCheckOptionVerify)
+add_cmake_build_test (NoCPPCheckUnusedOption
+                      NoCPPCheckUnusedOptionVerify)
+add_cmake_build_test (NoCPPCheckUnusedGeneratedOption
+                      NoCPPCheckUnusedGeneratedOptionVerify)
 add_cmake_build_test (NoVeraPPOption
                       NoVeraPPOptionVerify)
 add_cmake_build_test (VeraPPWithPolysquareProfileRunOnTargetWithRules
