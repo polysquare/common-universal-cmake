@@ -101,6 +101,7 @@ add_cmake_test (NoBuildTestsOption)
 add_cmake_test (NoWErrorOption)
 add_cmake_test (VeraPPRulesSetAfterRulesBootstrap)
 add_cmake_test (TestLibrariesAvailableAfterGoogleTestBootstrap)
+add_cmake_test (CheckSourcesTargetCreated)
 add_cmake_build_test (AddSourcesScanTarget
                       AddSourcesScanTargetVerify)
 add_cmake_build_test (AddTestTargetLinkedToLibraries VerifyGTest)
@@ -127,6 +128,12 @@ add_cmake_build_test (CPPChecksAllInternalHeadersOnGlobalUnusedCheck
                       CPPChecksAllInternalHeadersOnGlobalUnusedCheckVerify)
 add_cmake_build_test (OverrideUnusedCheckWithGroupProperty
                       OverrideUnusedCheckWithGroupPropertyVerify)
+add_cmake_build_test (ChecksCanBeRunOnGeneratedFiles
+                      ChecksCanBeRunOnGeneratedFilesVerify)
+add_cmake_build_test (CheckSourcesStampfileGenerated
+                      CheckSourcesStampfileGeneratedVerify)
+add_cmake_build_test (CheckSourcesReRunIfSourcesUpdated
+                      CheckSourcesReRunIfSourcesUpdatedVerify)
 add_cmake_test (AddMatcherTarget)
 add_cmake_test (MatcherTargetHasExportedDetails)
 add_cmake_test (AddMockTarget)

@@ -202,6 +202,7 @@ endmacro (polysquare_gmock_bootstrap)
 function (polysquare_add_checks_to_target TARGET)
 
     set (ADD_CHECKS_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
@@ -242,28 +243,45 @@ function (polysquare_add_checks_to_target TARGET)
         set (_verapp_profile ${_POLYSQUARE_VERAPP_PROFILE})
         set (_import_rules_target ${_POLYSQUARE_VERAPP_IMPORT_RULES})
 
+        # CHECK_GENERATED is off by default
+        set (CHECK_GENERATED_OPT)
+        if (CHECKS_CHECK_GENERATED)
+
+            set (CHECK_GENERATED_OPT CHECK_GENERATED)
+
+        endif (CHECKS_CHECK_GENERATED)
 
         verapp_profile_check_source_files_conformance (${_verapp_output_dir}
                                                        ${_profile}
                                                        ${TARGET}
                                                        ${_import_rules_target}
-                                                       ${_verapp_check_mode})
+                                                       ${_verapp_check_mode}
+                                                       ${CHECK_GENERATED_OPT})
 
     endif (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
 
     if (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
+        # CHECK_GENERATED is off by default
+        set (CHECK_GENERATED_OPT)
+        if (CHECKS_CHECK_GENERATED)
+
+            set (CHECK_GENERATED_OPT CHECK_GENERATED)
+
+        endif (CHECKS_CHECK_GENERATED)
+
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
-                                 ${CHECKS_INTERNAL_INCLUDE_DIRS})
+                                 ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                                 ${CHECK_GENERATED_OPT})
 
         if (NOT CHECKS_NO_UNUSED_CHECK)
 
             # CHECK_GENERATED is on by default unless explicitly disabled.
-            set (CHECK_GENERATED CHECK_GENERATED)
+            set (CHECK_GENERATED_UNUSED_OPTION CHECK_GENERATED)
             if (CHECKS_NO_UNUSED_GENERATED_CHECK)
 
-                set (CHECK_GENERATED)
+                set (CHECK_GENERATED_UNUSED_OPTION)
 
             endif (CHECKS_NO_UNUSED_GENERATED_CHECK)
 
@@ -276,7 +294,7 @@ function (polysquare_add_checks_to_target TARGET)
 
             set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS})
             set (SOURCES ${TARGET_SOURCES})
-            set (CHECKGEN ${CHECK_GENERATED})
+            set (CHECKGEN ${CHECK_GENERATED_UNUSED_OPTION})
 
             # Using this function will have the side-effect of requiring that
             # TARGET is built before CHECK_NAME.
@@ -317,14 +335,14 @@ endfunction (_clear_variable_names_if_false)
 function (polysquare_add_checked_sources TARGET)
 
     set (SOURCES_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
          NO_VERAPP
          WARN_ONLY)
     set (SOURCES_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP
-         DESCRIPTION)
+         UNUSED_CHECK_GROUP)
     set (SOURCES_MULTIVAR_ARGS
          SOURCES
          INTERNAL_INCLUDE_DIRS)
@@ -344,6 +362,7 @@ function (polysquare_add_checked_sources TARGET)
     endif (SOURCES_UNPARSED_ARGUMENTS)
 
     _clear_variable_names_if_false (SOURCES
+                                    CHECK_GENERATED
                                     NO_CPPCHECK
                                     NO_UNUSED_CHECK
                                     NO_UNUSED_GENERATED_CHECK
@@ -351,13 +370,7 @@ function (polysquare_add_checked_sources TARGET)
                                     WARN_ONLY)
 
     set (SOURCES_SCANNED_STAMP
-         ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-checked.stamp)
-
-    if (NOT SOURCES_DESCRIPTION)
-
-        set (SOURCES_DESCRIPTION "sources")
-
-    endif (NOT SOURCES_DESCRIPTION)
+         ${CMAKE_BINARY_DIR}/${TARGET}.stamp)
 
     # Make sure that each source is marked as a "CXX" source.
     # Some of the scanners will ignore source files which aren't
@@ -371,24 +384,30 @@ function (polysquare_add_checked_sources TARGET)
 
     endforeach ()
 
-    add_custom_target (${TARGET} ALL
-                       SOURCES ${SOURCES_SOURCES}
-                       DEPENDS ${SOURCES_SCANNED_STAMP}
-                       COMMENT "Scanning ${SOURCES_DESCRIPTION}")
+    add_custom_target (${TARGET}_scannable
+                       SOURCES ${SOURCES_SOURCES})
 
     add_custom_command (OUTPUT ${SOURCES_SCANNED_STAMP}
-                        PRE_BUILD
-                        COMMAND ${CMAKE_COMMAND} -E touch ${SOURCES_SCANNED_STAMP})
+                        COMMAND
+                        ${CMAKE_COMMAND} -E touch ${SOURCES_SCANNED_STAMP}
+                        DEPENDS
+                        ${TARGET}_scannable
+                        ${SOURCES_SOURCES}
+                        COMMENT "Checking source group: ${TARGET}")
+
+    add_custom_target (${TARGET} ALL
+                       DEPENDS ${SOURCES_SCANNED_STAMP})
 
     set_property (SOURCE ${SOURCES_SCANNED_STAMP}
                   PROPERTY OBJECT_DEPENDS
                   ${SOURCES_SOURCES})
 
-    polysquare_add_checks_to_target (${TARGET}
+    polysquare_add_checks_to_target (${TARGET}_scannable
                                      INTERNAL_INCLUDE_DIRS
                                      ${SOURCES_INTERNAL_INCLUDE_DIRS}
                                      UNUSED_CHECK_GROUP
                                      ${SOURCES_UNUSED_CHECK_GROUP}
+                                     ${SOURCES_CHECK_GENERATED}
                                      ${SOURCES_NO_CPPCHECK}
                                      ${SOURCES_NO_UNUSED_CHECK}
                                      ${SOURCES_NO_UNUSED_GENERATED_CHECK}
@@ -400,6 +419,7 @@ endfunction (polysquare_add_checked_sources)
 function (_polysquare_add_target_internal TARGET)
 
     set (TARGET_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
@@ -453,6 +473,7 @@ function (_polysquare_add_target_internal TARGET)
     endif (TARGET_EXPORT_HEADER_DIRECTORY)
 
     _clear_variable_names_if_false (TARGET
+                                    CHECK_GENERATED
                                     NO_CPPCHECK
                                     NO_UNUSED_CHECK
                                     NO_UNUSED_GENERATED_CHECK
@@ -464,6 +485,7 @@ function (_polysquare_add_target_internal TARGET)
                                      ${TARGET_INTERNAL_INCLUDE_DIRS}
                                      UNUSED_CHECK_GROUP
                                      ${TARGET_UNUSED_CHECK_GROUP}
+                                     ${TARGET_CHECK_GENERATED}
                                      ${TARGET_NO_CPPCHECK}
                                      ${TARGET_NO_UNUSED_CHECK}
                                      ${TARGET_NO_UNUSED_GENERATED_CHECK}
@@ -475,6 +497,7 @@ endfunction (_polysquare_add_target_internal)
 function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
 
     set (LIBRARY_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
@@ -508,6 +531,7 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
                  ${LIBRARY_SOURCES})
 
     _clear_variable_names_if_false (LIBRARY
+                                    CHECK_GENERATED
                                     NO_CPPCHECK
                                     NO_UNUSED_CHECK
                                     NO_UNUSED_GENERATED_CHECK
@@ -525,6 +549,7 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
                                      ${LIBRARY_EXPORT_HEADER_DIRECTORY}
                                      UNUSED_CHECK_GROUP
                                      ${LIBRARY_UNUSED_CHECK_GROUP}
+                                     ${LIBRARY_CHECK_GENERATED}
                                      ${LIBRARY_NO_CPPCHECK}
                                      ${LIBRARY_NO_UNUSED_CHECK}
                                      ${LIBRARY_NO_UNUSED_GENERATED_CHECK}
@@ -536,6 +561,7 @@ endfunction (polysquare_add_library)
 function (polysquare_add_executable EXECUTABLE_NAME)
 
     set (EXECUTABLE_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
@@ -568,6 +594,7 @@ function (polysquare_add_executable EXECUTABLE_NAME)
                     ${EXECUTABLE_SOURCES})
 
     _clear_variable_names_if_false (EXECUTABLE
+                                    CHECK_GENERATED
                                     NO_CPPCHECK
                                     NO_UNUSED_CHECK
                                     NO_UNUSED_GENERATED_CHECK
@@ -585,6 +612,7 @@ function (polysquare_add_executable EXECUTABLE_NAME)
                                      ${EXECUTABLE_EXPORT_HEADER_DIRECTORY}
                                      UNUSED_CHECK_GROUP
                                      ${EXECUTABLE_UNUSED_CHECK_GROUP}
+                                     ${EXECUTABLE_CHECK_GENERATED}
                                      ${EXECUTABLE_NO_CPPCHECK}
                                      ${EXECUTABLE_NO_UNUSED_CHECK}
                                      ${EXECUTABLE_NO_UNUSED_GENERATED_CHECK}
@@ -632,6 +660,7 @@ function (polysquare_add_test TEST_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (TEST_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
@@ -693,6 +722,7 @@ function (polysquare_add_test TEST_NAME)
     endforeach ()
 
     _clear_variable_names_if_false (TEST
+                                    CHECK_GENERATED
                                     NO_CPPCHECK
                                     NO_UNUSED_CHECK
                                     NO_UNUSED_GENERATED_CHECK
@@ -710,6 +740,7 @@ function (polysquare_add_test TEST_NAME)
                                ${TEST_EXPORT_HEADER_DIRECTORY}
                                UNUSED_CHECK_GROUP
                                ${TEST_UNUSED_CHECK_GROUP}
+                               ${TEST_CHECK_GENERATED}
                                ${TEST_NO_CPPCHECK}
                                ${TEST_NO_UNUSED_CHECK}
                                ${TEST_NO_UNUSED_GENERATED_CHECK}
@@ -727,6 +758,7 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MAIN_LIBRARY_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
@@ -761,6 +793,7 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
                                                   MAIN_LIBRARY_LIBRARIES)
 
     _clear_variable_names_if_false (MAIN_LIBRARY
+                                    CHECK_GENERATED
                                     NO_CPPCHECK
                                     NO_UNUSED_CHECK
                                     NO_UNUSED_GENERATED_CHECK
@@ -778,6 +811,7 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
                             ${MAIN_LIBRARY_EXPORT_HEADER_DIRECTORY}
                             UNUSED_CHECK_GROUP
                             ${MAIN_LIBRARY_UNUSED_CHECK_GROUP}
+                            ${MAIN_LIBRARY_CHECK_GENERATED}
                             ${MAIN_LIBRARY_NO_CPPCHECK}
                             ${MAIN_LIBRARY_NO_UNUSED_CHECK}
                             ${MAIN_LIBRARY_NO_UNUSED_GENERATED_CHECK}
@@ -795,6 +829,7 @@ function (polysquare_add_matcher MATCHER_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MATCHER_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
@@ -827,6 +862,7 @@ function (polysquare_add_matcher MATCHER_NAME)
                                                   MATCHER_LIBRARIES)
 
     _clear_variable_names_if_false (MATCHER
+                                    CHECK_GENERATED
                                     NO_CPPCHECK
                                     NO_UNUSED_CHECK
                                     NO_UNUSED_GENERATED_CHECK
@@ -844,6 +880,7 @@ function (polysquare_add_matcher MATCHER_NAME)
                             ${MATCHER_EXPORT_HEADER_DIRECTORY}
                             UNUSED_CHECK_GROUP
                             ${MATCHER_UNUSED_CHECK_GROUP}
+                            ${MATCHER_CHECK_GENERATED}
                             ${MATCHER_NO_CPPCHECK}
                             ${MATCHER_NO_UNUSED_CHECK}
                             ${MATCHER_NO_UNUSED_GENERATED_CHECK}
@@ -861,6 +898,7 @@ function (polysquare_add_mock MOCK_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MOCK_OPTION_ARGS
+         CHECK_GENERATED
          NO_CPPCHECK
          NO_UNUSED_CHECK
          NO_UNUSED_GENERATED_CHECK
@@ -893,6 +931,7 @@ function (polysquare_add_mock MOCK_NAME)
                                                   MOCK_LIBRARIES)
 
     _clear_variable_names_if_false (MOCK
+                                    CHECK_GENERATED
                                     NO_CPPCHECK
                                     NO_UNUSED_CHECK
                                     NO_UNUSED_GENERATED_CHECK
@@ -908,6 +947,7 @@ function (polysquare_add_mock MOCK_NAME)
                             ${MOCK_EXPORT_HEADER_DIRECTORY}
                             UNUSED_CHECK_GROUP
                             ${MOCK_UNUSED_CHECK_GROUP}
+                            ${MOCK_CHECK_GENERATED}
                             ${MOCK_NO_CPPCHECK}
                             ${MOCK_NO_UNUSED_CHECK}
                             ${MOCK_NO_UNUSED_GENERATED_CHECK}

@@ -11,5 +11,6 @@ assert_file_contains (${BUILD_OUTPUT} "vera++")
 assert_file_contains (${BUILD_OUTPUT} "Header.h --profile polysquare")
 assert_file_contains (${BUILD_OUTPUT} "--error")
 
-# It doesn't make sense to run cppcheck just on headers
-assert_file_does_not_contain (${BUILD_OUTPUT} "cppcheck")
+# We used to assert that cppcheck wasn't run but that didn't make any sense.
+# cppcheck will always be run on a source group unless the user explicitly
+# disables it.
