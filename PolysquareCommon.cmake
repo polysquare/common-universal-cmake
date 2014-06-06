@@ -1,7 +1,7 @@
 # /PolysquareCommon.cmake
 # Provides some functionality that is common to all polysquare projects,
 # such as bootstrapping static analysis tools, adding code coverage
-# targets and convience functions to add tests, matchers, mocks etc
+# targets and convenience functions to add tests, matchers, mocks etc
 # without having to write too much boilerplate.
 #
 # See LICENCE.md for Copyright information
