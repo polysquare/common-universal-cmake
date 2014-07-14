@@ -36,6 +36,9 @@ function (polysquare_compiler_bootstrap)
          "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}"
          PARENT_SCOPE)
 
+    # Generate a compilation commands database
+    set (CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
+
 endfunction (polysquare_compiler_bootstrap)
 
 macro (polysquare_coverage_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
