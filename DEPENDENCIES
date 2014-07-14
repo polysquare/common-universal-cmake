@@ -1,3 +1,5 @@
+cmake
+ninja-build
 cppcheck
 libgtest-dev
 google-mock
