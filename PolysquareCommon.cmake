@@ -14,6 +14,10 @@ option (POLYSQUARE_USE_VERAPP
         "Check source files for style compliance with vera++" ON)
 option (POLYSQUARE_USE_CPPCHECK
         "Perform simple static analysis for known bad practices" ON)
+option (POLYSQUARE_USE_PRECOMPILED_HEADERS
+        "Generate precompiled headers for targets where appropriate" ON)
+option (POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS
+        "Generate single-source-file build targets, invoked with target_unity" ON)
 
 function (polysquare_compiler_bootstrap)
 
@@ -40,6 +44,22 @@ function (polysquare_compiler_bootstrap)
     set (CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
 
 endfunction (polysquare_compiler_bootstrap)
+
+macro (polysquare_cotire_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
+
+    if (POLYSQUARE_USE_PRECOMPILED_HEADERS OR
+        POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
+
+        set (CMAKE_MODULE_PATH
+             ${COMMON_UNIVERSAL_CMAKE_DIR}/cotire/CMake
+             ${CMAKE_MODULE_PATH})
+
+        include (cotire)
+
+    endif (POLYSQUARE_USE_PRECOMPILED_HEADERS OR
+           POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
+
+endmacro (polysquare_cotire_bootstrap)
 
 macro (polysquare_coverage_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
@@ -202,21 +222,45 @@ macro (polysquare_gmock_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
 endmacro (polysquare_gmock_bootstrap)
 
+set (_ALL_POLYSQUARE_CHECKS_OPTION_ARGS
+     CHECK_GENERATED
+     NO_CPPCHECK
+     NO_UNUSED_CHECK
+     NO_UNUSED_GENERATED_CHECK
+     NO_VERAPP
+     WARN_ONLY)
+set (_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS
+     NO_UNITY_BUILD
+     NO_PRECOMPILED_HEADERS)
+
+set (_ALL_POLYSQUARE_SOURCES_OPTION_ARGS
+     ${_ALL_POLYSQUARE_CHECKS_OPTION_ARGS})
+set (_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS
+     UNUSED_CHECK_GROUP)
+set (_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS
+     SOURCES
+     INTERNAL_INCLUDE_DIRS
+     EXTERNAL_INCLUDE_DIRS)
+
+set (_ALL_POLYSQUARE_BINARY_OPTION_ARGS
+     ${_ALL_POLYSQUARE_SOURCES_OPTION_ARGS}
+     ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS})
+set (_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS
+     ${_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS}
+     EXPORT_HEADER_DIRECTORY)
+set (_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS
+     ${_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS}
+     LIBRARIES
+     DEPENDS)
+
 function (polysquare_add_checks_to_target TARGET)
 
     set (ADD_CHECKS_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
-
+         ${_ALL_POLYSQUARE_SOURCES_OPTION_ARGS})
     set (ADD_CHECKS_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP)
-
+         ${_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS})
     set (ADD_CHECKS_MULTIVAR_ARGS
-         INTERNAL_INCLUDE_DIRS)
+         ${_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS})
 
     cmake_parse_arguments (CHECKS
                            "${ADD_CHECKS_OPTION_ARGS}"
@@ -276,6 +320,7 @@ function (polysquare_add_checks_to_target TARGET)
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
                                  ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                                 # We don't add external include dirs here
                                  ${CHECK_GENERATED_OPT})
 
         if (NOT CHECKS_NO_UNUSED_CHECK)
@@ -295,7 +340,7 @@ function (polysquare_add_checks_to_target TARGET)
 
             endif (CHECKS_UNUSED_CHECK_GROUP)
 
-            set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS})
+            set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS} ${CHECKS_EXTERNAL_INCLUDE_DIRS})
             set (SOURCES ${TARGET_SOURCES})
             set (CHECKGEN ${CHECK_GENERATED_UNUSED_OPTION})
 
@@ -335,20 +380,70 @@ function (_clear_variable_names_if_false PREFIX)
 
 endfunction (_clear_variable_names_if_false)
 
+function (_polysquare_forward_options PREFIX RETURN_LIST_NAME)
+
+    set (FORWARD_OPTION_ARGS "")
+    set (FORWARD_SINGLEVAR_ARGS "")
+    set (FORWARD_MULTIVAR_ARGS
+         OPTION_ARGS
+         SINGLEVAR_ARGS
+         MULTIVAR_ARGS)
+
+    cmake_parse_arguments (FORWARD
+                           "${FORWARD_OPTION_ARGS}"
+                           "${FORWARD_SINGLEVAR_ARGS}"
+                           "${FORWARD_MULTIVAR_ARGS}"
+                           ${ARGN})
+
+    # Temporary accumulation of variables to forward
+    set (RETURN_LIST)
+
+    # Option args - just forward the value of each set ${REFIX_OPTION_ARG}
+    # as this will be set to the option or to ""
+    foreach (OPTION_ARG ${FORWARD_OPTION_ARGS})
+
+        set (PREFIXED_OPTION_ARG ${PREFIX}_${OPTION_ARG})
+        list (APPEND RETURN_LIST ${${PREFIXED_OPTION_ARG}})
+
+    endforeach ()
+
+    # Single-variable args - add the name of the argument and its value to
+    # the return list
+    foreach (SINGLEVAR_ARG ${FORWARD_SINGLEVAR_ARGS})
+
+        set (PREFIXED_SINGLEVAR_ARG ${PREFIX}_${SINGLEVAR_ARG})
+        list (APPEND RETURN_LIST ${SINGLEVAR_ARG})
+        list (APPEND RETURN_LIST ${${PREFIXED_SINGLEVAR_ARG}})
+
+    endforeach ()
+
+    # Multi-variable args - add the name of the argument and all its values
+    # to the return-list
+    foreach (MULTIVAR_ARG ${FORWARD_MULTIVAR_ARGS})
+
+        set (PREFIXED_MULTIVAR_ARG ${PREFIX}_${MULTIVAR_ARG})
+        list (APPEND RETURN_LIST ${MULTIVAR_ARG})
+
+        foreach (VALUE ${${PREFIXED_MULTIVAR_ARG}})
+
+            list (APPEND RETURN_LIST ${VALUE})
+
+        endforeach ()
+
+    endforeach ()
+
+    set (${RETURN_LIST_NAME} ${RETURN_LIST} PARENT_SCOPE)
+
+endfunction ()
+
 function (polysquare_add_checked_sources TARGET)
 
     set (SOURCES_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
+         ${_ALL_POLYSQUARE_SOURCES_OPTION_ARGS})
     set (SOURCES_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP)
+         ${_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS})
     set (SOURCES_MULTIVAR_ARGS
-         SOURCES
-         INTERNAL_INCLUDE_DIRS)
+         ${_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS})
 
     cmake_parse_arguments (SOURCES
                            "${SOURCES_OPTION_ARGS}"
@@ -365,12 +460,7 @@ function (polysquare_add_checked_sources TARGET)
     endif (SOURCES_UNPARSED_ARGUMENTS)
 
     _clear_variable_names_if_false (SOURCES
-                                    CHECK_GENERATED
-                                    NO_CPPCHECK
-                                    NO_UNUSED_CHECK
-                                    NO_UNUSED_GENERATED_CHECK
-                                    NO_VERAPP
-                                    WARN_ONLY)
+                                    ${SOURCES_OPTION_ARGS})
 
     set (SOURCES_SCANNED_STAMP
          ${CMAKE_BINARY_DIR}/${TARGET}.stamp)
@@ -405,37 +495,126 @@ function (polysquare_add_checked_sources TARGET)
                   PROPERTY OBJECT_DEPENDS
                   ${SOURCES_SOURCES})
 
+    _polysquare_forward_options (SOURCES FORWARD_OPTIONS
+                                 OPTION_ARGS ${SOURCES_OPTION_ARGS}
+                                 SINGLEVAR_ARGS ${SOURCES_SINGLEVAR_ARGS}
+                                 MULTIVAR_ARGS ${SOURCES_MULTIVAR_ARGS})
+
     polysquare_add_checks_to_target (${TARGET}_scannable
-                                     INTERNAL_INCLUDE_DIRS
-                                     ${SOURCES_INTERNAL_INCLUDE_DIRS}
-                                     UNUSED_CHECK_GROUP
-                                     ${SOURCES_UNUSED_CHECK_GROUP}
-                                     ${SOURCES_CHECK_GENERATED}
-                                     ${SOURCES_NO_CPPCHECK}
-                                     ${SOURCES_NO_UNUSED_CHECK}
-                                     ${SOURCES_NO_UNUSED_GENERATED_CHECK}
-                                     ${SOURCES_NO_VERAPP}
-                                     ${SOURCES_WARN_ONLY})
+                                     ${FORWARD_OPTIONS})
 
 endfunction (polysquare_add_checked_sources)
+
+function (polysquare_accelerate_target_compilation TARGET)
+
+    set (ACCELERATE_OPTION_ARGS
+         ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS})
+    set (ACCELERATE_SINGLEVAR_ARGS
+         "")
+    set (ACCELERATE_MULTIVAR_ARGS
+         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
+
+    cmake_parse_arguments (ACCELERATION
+                           "${ACCELERATE_OPTION_ARGS}"
+                           "${ACCELERATE_SINGLEVAR_ARGS}"
+                           "${ACCELERATE_MULTIVAR_ARGS}"
+                           ${ARGN})
+
+    if (ACCELERATION_NO_UNITY_BUILD OR
+        NOT POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
+
+        set (UNITY_BUILDS OFF)
+
+    else (ACCELERATION_NO_UNITY_BUILD OR
+          NOT POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
+
+        set (UNITY_BUILDS ON)
+
+    endif (ACCELERATION_NO_UNITY_BUILD OR
+           NOT POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
+
+    if (ACCELERATION_NO_PRECOMPILED_HEADERS OR
+        NOT POLYSQUARE_USE_PRECOMPILED_HEADERS)
+
+        set (PRECOMPILED_HEADERS OFF)
+
+    else (ACCELERATION_NO_PRECOMPILED_HEADERS OR
+          NOT POLYSQUARE_USE_PRECOMPILED_HEADERS)
+
+        set (PRECOMPILED_HEADERS ON)
+
+    endif (ACCELERATION_NO_PRECOMPILED_HEADERS OR
+           NOT POLYSQUARE_USE_PRECOMPILED_HEADERS)
+
+    if (COMMAND cotire)
+
+        set_target_properties (${TARGET} PROPERTIES
+                               COTIRE_ADD_UNITY_BUILD
+                               ${UNITY_BUILDS}
+                               COTIRE_ENABLE_PRECOMPILED_HEADER
+                               ${PRECOMPILED_HEADERS})
+
+        cotire (${TARGET})
+
+        # Add dependencies to unity target
+        if (UNITY_BUILDS)
+
+            set (UNITY_TARGET_NAME ${TARGET}_unity)
+
+            if (ACCELERATION_DEPENDS)
+
+                add_dependencies (${UNITY_TARGET_NAME}
+                                  ${ACCELERATION_DEPENDS})
+
+            endif (ACCELERATION_DEPENDS)
+
+            if (ACCELERATION_LIBRARIES)
+
+                foreach (LIBRARY ${ACCELERATION_LIBRARIES})
+
+                    # If LIBRARY is a target then it might also have a
+                    # corresponding _unity target, check for that too
+                    if (TARGET ${LIBRARY})
+
+                        set (UNITY_TARGET ${LIBRARY}_unity)
+
+                        if (TARGET ${UNITY_TARGET})
+
+                            target_link_libraries (${UNITY_TARGET_NAME}
+                                                   ${UNITY_TARGET})
+
+                        else (TARGET ${UNITY_TARGET})
+
+                            target_link_libraries (${UNITY_TARGET_NAME}
+                                                   ${LIBRARY})
+
+                        endif (TARGET ${UNITY_TARGET})
+
+                    else (TARGET ${LIBRARY})
+
+                        target_link_libraries (${UNITY_TARGET_NAME}
+                                               ${LIBRARY})
+
+                    endif (TARGET ${LIBRARY})
+
+                endforeach ()
+
+            endif (ACCELERATION_LIBRARIES)
+
+        endif (UNITY_BUILDS)
+
+    endif (COMMAND cotire)
+
+endfunction (polysquare_accelerate_target_compilation)
 
 function (_polysquare_add_target_internal TARGET)
 
     set (TARGET_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
+         ${_ALL_POLYSQUARE_BINARY_OPTION_ARGS})
     set (TARGET_SINGLEVAR_ARGS
-         EXPORT_HEADER_DIRECTORY
-         UNUSED_CHECK_GROUP)
+         ${_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS})
     set (TARGET_MULTIVAR_ARGS
-         LIBRARIES
-         INTERNAL_INCLUDE_DIRS
-         EXTERNAL_INCLUDE_DIRS
-         SOURCES)
+         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
 
     cmake_parse_arguments (TARGET
                            "${TARGET_OPTION_ARGS}"
@@ -449,6 +628,12 @@ function (_polysquare_add_target_internal TARGET)
                                ${TARGET_LIBRARIES})
 
     endif (TARGET_LIBRARIES)
+
+    if (TARGET_DEPENDS)
+
+        add_dependencies (${TARGET} ${TARGET_DEPENDS})
+
+    endif (TARGET_DEPENDS)
 
     if (TARGET_INTERNAL_INCLUDE_DIRS OR TARGET_EXTERNAL_INCLUDE_DIRS)
 
@@ -476,44 +661,36 @@ function (_polysquare_add_target_internal TARGET)
     endif (TARGET_EXPORT_HEADER_DIRECTORY)
 
     _clear_variable_names_if_false (TARGET
-                                    CHECK_GENERATED
-                                    NO_CPPCHECK
-                                    NO_UNUSED_CHECK
-                                    NO_UNUSED_GENERATED_CHECK
-                                    NO_VERAPP
-                                    WARN_ONLY)
+                                    ${TARGET_OPTION_ARGS})
 
+    _polysquare_forward_options (TARGET CHECKS_FORWARD_OPTIONS
+                                 OPTION_ARGS
+                                 ${_ALL_POLYSQUARE_CHECKS_OPTION_ARGS}
+                                 SINGLEVAR_ARGS
+                                 ${_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS}
+                                 MULTIVAR_ARGS
+                                 ${_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS})
     polysquare_add_checks_to_target (${TARGET}
-                                     INTERNAL_INCLUDE_DIRS
-                                     ${TARGET_INTERNAL_INCLUDE_DIRS}
-                                     UNUSED_CHECK_GROUP
-                                     ${TARGET_UNUSED_CHECK_GROUP}
-                                     ${TARGET_CHECK_GENERATED}
-                                     ${TARGET_NO_CPPCHECK}
-                                     ${TARGET_NO_UNUSED_CHECK}
-                                     ${TARGET_NO_UNUSED_GENERATED_CHECK}
-                                     ${TARGET_NO_VERAPP}
-                                     ${TARGET_WARN_ONLY})
+                                     ${CHECKS_FORWARD_OPTIONS})
+
+    _polysquare_forward_options (TARGET ACCELERATE_FORWARD_OPTIONS
+                                 OPTION_ARGS
+                                 ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS}
+                                 MULTIVAR_ARGS
+                                 ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
+    polysquare_accelerate_target_compilation (${TARGET}
+                                              ${ACCELERATE_FORWARD_OPTIONS})
 
 endfunction (_polysquare_add_target_internal)
 
 function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
 
     set (LIBRARY_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
+         ${_ALL_POLYSQUARE_BINARY_OPTION_ARGS})
     set (LIBRARY_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP
-         EXPORT_HEADER_DIRECTORY)
+         ${_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS})
     set (LIBRARY_MULTIVAR_ARGS
-         EXTERNAL_INCLUDE_DIRS
-         INTERNAL_INCLUDE_DIRS
-         LIBRARIES
-         SOURCES)
+         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
 
     cmake_parse_arguments (LIBRARY
                            "${LIBRARY_OPTION_ARGS}"
@@ -534,50 +711,26 @@ function (polysquare_add_library LIBRARY_NAME LIBRARY_TYPE)
                  ${LIBRARY_SOURCES})
 
     _clear_variable_names_if_false (LIBRARY
-                                    CHECK_GENERATED
-                                    NO_CPPCHECK
-                                    NO_UNUSED_CHECK
-                                    NO_UNUSED_GENERATED_CHECK
-                                    NO_VERAPP
-                                    WARN_ONLY)
+                                    ${LIBRARY_OPTION_ARGS})
+
+    _polysquare_forward_options (LIBRARY FORWARD_OPTIONS
+                                 OPTION_ARGS ${LIBRARY_OPTION_ARGS}
+                                 SINGLEVAR_ARGS ${LIBRARY_SINGLEVAR_ARGS}
+                                 MULTIVAR_ARGS ${LIBRARY_MULTIVAR_ARGS})
 
     _polysquare_add_target_internal (${LIBRARY_NAME}
-                                     EXTERNAL_INCLUDE_DIRS
-                                     ${LIBRARY_EXTERNAL_INCLUDE_DIRS}
-                                     INTERNAL_INCLUDE_DIRS
-                                     ${LIBRARY_INTERNAL_INCLUDE_DIRS}
-                                     LIBRARIES ${LIBRARY_LIBRARIES}
-                                     SOURCES ${LIBRARY_SOURCES}
-                                     EXPORT_HEADER_DIRECTORY
-                                     ${LIBRARY_EXPORT_HEADER_DIRECTORY}
-                                     UNUSED_CHECK_GROUP
-                                     ${LIBRARY_UNUSED_CHECK_GROUP}
-                                     ${LIBRARY_CHECK_GENERATED}
-                                     ${LIBRARY_NO_CPPCHECK}
-                                     ${LIBRARY_NO_UNUSED_CHECK}
-                                     ${LIBRARY_NO_UNUSED_GENERATED_CHECK}
-                                     ${LIBRARY_NO_VERAPP}
-                                     ${LIBRARY_WARN_ONLY})
+                                     ${FORWARD_OPTIONS})
 
 endfunction (polysquare_add_library)
 
 function (polysquare_add_executable EXECUTABLE_NAME)
 
     set (EXECUTABLE_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
+         ${_ALL_POLYSQUARE_BINARY_OPTION_ARGS})
     set (EXECUTABLE_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP
-         EXPORT_HEADER_DIRECTORY)
+         ${_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS})
     set (EXECUTABLE_MULTIVAR_ARGS
-         EXTERNAL_INCLUDE_DIRS
-         INTERNAL_INCLUDE_DIRS
-         LIBRARIES
-         SOURCES)
+         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
 
     cmake_parse_arguments (EXECUTABLE
                            "${EXECUTABLE_OPTION_ARGS}"
@@ -597,30 +750,14 @@ function (polysquare_add_executable EXECUTABLE_NAME)
                     ${EXECUTABLE_SOURCES})
 
     _clear_variable_names_if_false (EXECUTABLE
-                                    CHECK_GENERATED
-                                    NO_CPPCHECK
-                                    NO_UNUSED_CHECK
-                                    NO_UNUSED_GENERATED_CHECK
-                                    NO_VERAPP
-                                    WARN_ONLY)
+                                    ${EXECUTABLE_OPTION_ARGS})
+    _polysquare_forward_options (EXECUTABLE FORWARD_OPTIONS
+                                 OPTION_ARGS ${EXECUTABLE_OPTION_ARGS}
+                                 SINGLEVAR_ARGS ${EXECUTABLE_SINGLEVAR_ARGS}
+                                 MULTIVAR_ARGS ${EXECUTABLE_MULTIVAR_ARGS})
 
     _polysquare_add_target_internal (${EXECUTABLE_NAME}
-                                     EXTERNAL_INCLUDE_DIRS
-                                     ${EXECUTABLE_EXTERNAL_INCLUDE_DIRS}
-                                     INTERNAL_INCLUDE_DIRS
-                                     ${EXECUTABLE_INTERNAL_INCLUDE_DIRS}
-                                     LIBRARIES ${EXECUTABLE_LIBRARIES}
-                                     SOURCES ${EXECUTABLE_SOURCES}
-                                     EXPORT_HEADER_DIRECTORY
-                                     ${EXECUTABLE_EXPORT_HEADER_DIRECTORY}
-                                     UNUSED_CHECK_GROUP
-                                     ${EXECUTABLE_UNUSED_CHECK_GROUP}
-                                     ${EXECUTABLE_CHECK_GENERATED}
-                                     ${EXECUTABLE_NO_CPPCHECK}
-                                     ${EXECUTABLE_NO_UNUSED_CHECK}
-                                     ${EXECUTABLE_NO_UNUSED_GENERATED_CHECK}
-                                     ${EXECUTABLE_NO_VERAPP}
-                                     ${EXECUTABLE_WARN_ONLY})
+                                     ${FORWARD_OPTIONS})
 
 endfunction (polysquare_add_executable)
 
@@ -663,21 +800,12 @@ function (polysquare_add_test TEST_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (TEST_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
+         ${_ALL_POLYSQUARE_BINARY_OPTION_ARGS})
     set (TEST_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP
-         EXPORT_HEADER_DIRECTORY
+         ${_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS}
          MAIN_LIBRARY)
     set (TEST_MULTIVAR_ARGS
-         EXTERNAL_INCLUDE_DIRS
-         INTERNAL_INCLUDE_DIRS
-         LIBRARIES
-         SOURCES
+         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS}
          MATCHERS
          MOCKS)
 
@@ -725,30 +853,17 @@ function (polysquare_add_test TEST_NAME)
     endforeach ()
 
     _clear_variable_names_if_false (TEST
-                                    CHECK_GENERATED
-                                    NO_CPPCHECK
-                                    NO_UNUSED_CHECK
-                                    NO_UNUSED_GENERATED_CHECK
-                                    NO_VERAPP
-                                    WARN_ONLY)
+                                    ${TEST_OPTION_ARGS})
+    _polysquare_forward_options (TEST FORWARD_OPTIONS
+                                 OPTION_ARGS
+                                 ${_ALL_POLYSQUARE_BINARY_OPTION_ARGS}
+                                 SINGLEVAR_ARGS
+                                 ${_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS}
+                                 MULTIVAR_ARGS
+                                 ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
 
     polysquare_add_executable (${TEST_NAME}
-                               EXTERNAL_INCLUDE_DIRS
-                               ${TEST_EXTERNAL_INCLUDE_DIRS}
-                               INTERNAL_INCLUDE_DIRS
-                               ${TEST_INTERNAL_INCLUDE_DIRS}
-                               LIBRARIES ${TEST_LIBRARIES}
-                               SOURCES ${TEST_SOURCES}
-                               EXPORT_HEADER_DIRECTORY
-                               ${TEST_EXPORT_HEADER_DIRECTORY}
-                               UNUSED_CHECK_GROUP
-                               ${TEST_UNUSED_CHECK_GROUP}
-                               ${TEST_CHECK_GENERATED}
-                               ${TEST_NO_CPPCHECK}
-                               ${TEST_NO_UNUSED_CHECK}
-                               ${TEST_NO_UNUSED_GENERATED_CHECK}
-                               ${TEST_NO_VERAPP}
-                               ${TEST_WARN_ONLY})
+                               ${FORWARD_OPTIONS})
 
 endfunction (polysquare_add_test)
 
@@ -761,20 +876,11 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MAIN_LIBRARY_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
+         ${_ALL_POLYSQUARE_BINARY_OPTION_ARGS})
     set (MAIN_LIBRARY_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP
-         EXPORT_HEADER_DIRECTORY)
+         ${_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS})
     set (MAIN_LIBRARY_MULTIVAR_ARGS
-         EXTERNAL_INCLUDE_DIRS
-         INTERNAL_INCLUDE_DIRS
-         LIBRARIES
-         SOURCES)
+         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
 
     cmake_parse_arguments (MAIN_LIBRARY
                            "${MAIN_LIBRARY_OPTION_ARGS}"
@@ -796,30 +902,15 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
                                                   MAIN_LIBRARY_LIBRARIES)
 
     _clear_variable_names_if_false (MAIN_LIBRARY
-                                    CHECK_GENERATED
-                                    NO_CPPCHECK
-                                    NO_UNUSED_CHECK
-                                    NO_UNUSED_GENERATED_CHECK
-                                    NO_VERAPP
-                                    WARN_ONLY)
+                                    ${MAIN_LIBRARY_OPTION_ARGS})
+
+    _polysquare_forward_options (MAIN_LIBRARY FORWARD_OPTIONS
+                                 OPTION_ARGS ${MAIN_LIBRARY_OPTION_ARGS}
+                                 SINGLEVAR_ARGS ${MAIN_LIBRARY_SINGLEVAR_ARGS}
+                                 MULTIVAR_ARGS ${MAIN_LIBRARY_MULTIVAR_ARGS})
 
     polysquare_add_library (${MAIN_LIBRARY_NAME} STATIC
-                            EXTERNAL_INCLUDE_DIRS
-                            ${MAIN_LIBRARY_EXTERNAL_INCLUDE_DIRS}
-                            INTERNAL_INCLUDE_DIRS
-                            ${MAIN_LIBRARY_INTERNAL_INCLUDE_DIRS}
-                            LIBRARIES ${MAIN_LIBRARY_LIBRARIES}
-                            SOURCES ${MAIN_LIBRARY_SOURCES}
-                            EXPORT_HEADER_DIRECTORY
-                            ${MAIN_LIBRARY_EXPORT_HEADER_DIRECTORY}
-                            UNUSED_CHECK_GROUP
-                            ${MAIN_LIBRARY_UNUSED_CHECK_GROUP}
-                            ${MAIN_LIBRARY_CHECK_GENERATED}
-                            ${MAIN_LIBRARY_NO_CPPCHECK}
-                            ${MAIN_LIBRARY_NO_UNUSED_CHECK}
-                            ${MAIN_LIBRARY_NO_UNUSED_GENERATED_CHECK}
-                            ${MAIN_LIBRARY_NO_VERAPP}
-                            ${MAIN_LIBRARY_WARN_ONLY})
+                            ${FORWARD_OPTIONS})
 
 endfunction (polysquare_add_test_main)
 
@@ -832,20 +923,11 @@ function (polysquare_add_matcher MATCHER_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MATCHER_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
+         ${_ALL_POLYSQUARE_BINARY_OPTION_ARGS})
     set (MATCHER_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP
-         EXPORT_HEADER_DIRECTORY)
+         ${_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS})
     set (MATCHER_MULTIVAR_ARGS
-         EXTERNAL_INCLUDE_DIRS
-         INTERNAL_INCLUDE_DIRS
-         LIBRARIES
-         SOURCES)
+         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
 
     cmake_parse_arguments (MATCHER
                            "${MATCHER_OPTION_ARGS}"
@@ -865,30 +947,15 @@ function (polysquare_add_matcher MATCHER_NAME)
                                                   MATCHER_LIBRARIES)
 
     _clear_variable_names_if_false (MATCHER
-                                    CHECK_GENERATED
-                                    NO_CPPCHECK
-                                    NO_UNUSED_CHECK
-                                    NO_UNUSED_GENERATED_CHECK
-                                    NO_VERAPP
-                                    WARN_ONLY)
+                                    ${MATCHER_OPTION_ARGS})
+
+    _polysquare_forward_options (MATCHER FORWARD_OPTIONS
+                                 OPTION_ARGS ${MATCHER_OPTION_ARGS}
+                                 SINGLEVAR_ARGS ${MATCHER_SINGLEVAR_ARGS}
+                                 MULTIVAR_ARGS ${MATCHER_MULTIVAR_ARGS})
 
     polysquare_add_library (${MATCHER_NAME} STATIC
-                            EXTERNAL_INCLUDE_DIRS
-                            ${MATCHER_EXTERNAL_INCLUDE_DIRS}
-                            INTERNAL_INCLUDE_DIRS
-                            ${MATCHER_INTERNAL_INCLUDE_DIRS}
-                            LIBRARIES ${MATCHER_LIBRARIES}
-                            SOURCES ${MATCHER_SOURCES}
-                            EXPORT_HEADER_DIRECTORY
-                            ${MATCHER_EXPORT_HEADER_DIRECTORY}
-                            UNUSED_CHECK_GROUP
-                            ${MATCHER_UNUSED_CHECK_GROUP}
-                            ${MATCHER_CHECK_GENERATED}
-                            ${MATCHER_NO_CPPCHECK}
-                            ${MATCHER_NO_UNUSED_CHECK}
-                            ${MATCHER_NO_UNUSED_GENERATED_CHECK}
-                            ${MATCHER_NO_VERAPP}
-                            ${MATCHER_WARN_ONLY})
+                            ${FORWARD_OPTIONS})
 
 endfunction (polysquare_add_matcher)
 
@@ -901,20 +968,11 @@ function (polysquare_add_mock MOCK_NAME)
     endif (NOT POLYSQUARE_BUILD_TESTS)
 
     set (MOCK_OPTION_ARGS
-         CHECK_GENERATED
-         NO_CPPCHECK
-         NO_UNUSED_CHECK
-         NO_UNUSED_GENERATED_CHECK
-         NO_VERAPP
-         WARN_ONLY)
+         ${_ALL_POLYSQUARE_BINARY_OPTION_ARGS})
     set (MOCK_SINGLEVAR_ARGS
-         UNUSED_CHECK_GROUP
-         EXPORT_HEADER_DIRECTORY)
+         ${_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS})
     set (MOCK_MULTIVAR_ARGS
-         EXTERNAL_INCLUDE_DIRS
-         INTERNAL_INCLUDE_DIRS
-         LIBRARIES
-         SOURCES)
+         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
 
     cmake_parse_arguments (MOCK
                            "${MOCK_OPTION_ARGS}"
@@ -934,27 +992,14 @@ function (polysquare_add_mock MOCK_NAME)
                                                   MOCK_LIBRARIES)
 
     _clear_variable_names_if_false (MOCK
-                                    CHECK_GENERATED
-                                    NO_CPPCHECK
-                                    NO_UNUSED_CHECK
-                                    NO_UNUSED_GENERATED_CHECK
-                                    NO_VERAPP
-                                    WARN_ONLY)
+                                    ${MOCK_OPTION_ARGS})
+
+    _polysquare_forward_options (MOCK FORWARD_OPTIONS
+                                 OPTION_ARGS ${MOCK_OPTION_ARGS}
+                                 SINGLEVAR_ARGS ${MOCK_SINGLEVAR_ARGS}
+                                 MULTIVAR_ARGS ${MOCK_MULTIVAR_ARGS})
 
     polysquare_add_library (${MOCK_NAME} STATIC
-                            EXTERNAL_INCLUDE_DIRS ${MOCK_EXTERNAL_INCLUDE_DIRS}
-                            INTERNAL_INCLUDE_DIRS ${MOCK_INTERNAL_INCLUDE_DIRS}
-                            LIBRARIES ${MOCK_LIBRARIES}
-                            SOURCES ${MOCK_SOURCES}
-                            EXPORT_HEADER_DIRECTORY
-                            ${MOCK_EXPORT_HEADER_DIRECTORY}
-                            UNUSED_CHECK_GROUP
-                            ${MOCK_UNUSED_CHECK_GROUP}
-                            ${MOCK_CHECK_GENERATED}
-                            ${MOCK_NO_CPPCHECK}
-                            ${MOCK_NO_UNUSED_CHECK}
-                            ${MOCK_NO_UNUSED_GENERATED_CHECK}
-                            ${MOCK_NO_VERAPP}
-                            ${MOCK_WARN_ONLY})
+                            ${FORWARD_OPTIONS})
 
 endfunction (polysquare_add_mock)
