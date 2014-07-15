@@ -102,6 +102,23 @@ add_cmake_test (NoWErrorOption)
 add_cmake_test (VeraPPRulesSetAfterRulesBootstrap)
 add_cmake_test (TestLibrariesAvailableAfterGoogleTestBootstrap)
 add_cmake_test (CheckSourcesTargetCreated)
+add_cmake_test (PCHTargetsGeneratedAfterCotireBootstrap)
+add_cmake_test (UnityBuildTargetsGeneratedAfterCotireBootstrap)
+add_cmake_test (NoUnityBuildOption)
+add_cmake_test (NoUnityBuildGlobalOption)
+add_cmake_test (NoPCHOption)
+add_cmake_test (NoPCHGlobalOption)
+add_cmake_build_test (UnityBuildTargetsInheritTargetLinkLibraries
+                      UnityBuildTargetsInheritTargetLinkLibrariesVerify
+                      TARGET all_unity)
+add_cmake_build_test (UnityBuildTargetsDependOnUnityDependencies
+                      UnityBuildTargetsDependOnUnityDependenciesVerify
+                      TARGET all_unity)
+add_cmake_build_test (UnityBuildTargetsInheritDependencies
+                      UnityBuildTargetsInheritDependenciesVerify
+                      TARGET all_unity)
+add_cmake_build_test (DependenciesLinkedToTarget
+                      DependenciesLinkedToTargetVerify)
 add_cmake_build_test (GenerateCompilationCommandsDatabaseAfterBootstrap
                       GenerateCompilationCommandsDatabaseAfterBootstrapVerify)
 add_cmake_build_test (AddSourcesScanTarget
