@@ -8,18 +8,9 @@
 
 include (CMakeParseArguments)
 
-option (POLYSQUARE_USE_STRICT_COMPILER "Make compiler warnings errors" ON)
-option (POLYSQUARE_BUILD_TESTS "Build tests" ON)
-option (POLYSQUARE_USE_VERAPP
-        "Check source files for style compliance with vera++" ON)
-option (POLYSQUARE_USE_CPPCHECK
-        "Perform simple static analysis for known bad practices" ON)
-option (POLYSQUARE_USE_PRECOMPILED_HEADERS
-        "Generate precompiled headers for targets where appropriate" ON)
-option (POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS
-        "Generate single-source-file build targets, invoked with target_unity" ON)
-
 function (polysquare_compiler_bootstrap)
+
+    option (POLYSQUARE_USE_STRICT_COMPILER "Make compiler warnings errors" ON)
 
     set (WERROR)
 
@@ -47,6 +38,11 @@ endfunction (polysquare_compiler_bootstrap)
 
 macro (polysquare_cotire_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
+    option (POLYSQUARE_USE_PRECOMPILED_HEADERS
+            "Generate precompiled headers for targets where appropriate" ON)
+    option (POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS
+            "Generate single-source-file targets, invoked with target_unity" ON)
+
     if (POLYSQUARE_USE_PRECOMPILED_HEADERS OR
         POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
 
@@ -72,6 +68,9 @@ macro (polysquare_coverage_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 endmacro (polysquare_coverage_bootstrap)
 
 macro (polysquare_cppcheck_bootstrap)
+
+    option (POLYSQUARE_USE_CPPCHECK
+            "Perform simple static analysis for known bad practices" ON)
 
     if (POLYSQUARE_USE_CPPCHECK)
 
@@ -116,6 +115,9 @@ function (polysquare_cppcheck_complete_scanning)
 endfunction (polysquare_cppcheck_complete_scanning)
 
 macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
+
+    option (POLYSQUARE_USE_VERAPP
+            "Check source files for style compliance with vera++" ON)
 
     if (POLYSQUARE_USE_VERAPP)
 
@@ -202,6 +204,8 @@ function (polysquare_rules_complete_scanning)
 endfunction (polysquare_rules_complete_scanning)
 
 macro (polysquare_gmock_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
+
+    option (POLYSQUARE_BUILD_TESTS "Build tests" ON)
 
     if (POLYSQUARE_BUILD_TESTS)
 
@@ -340,7 +344,8 @@ function (polysquare_add_checks_to_target TARGET)
 
             endif (CHECKS_UNUSED_CHECK_GROUP)
 
-            set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS} ${CHECKS_EXTERNAL_INCLUDE_DIRS})
+            set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                         ${CHECKS_EXTERNAL_INCLUDE_DIRS})
             set (SOURCES ${TARGET_SOURCES})
             set (CHECKGEN ${CHECK_GENERATED_UNUSED_OPTION})
 
