@@ -76,14 +76,14 @@ macro (polysquare_cppcheck_bootstrap)
 
         include (CPPCheck)
 
-        _validate_cppcheck (CONTINUE)
+        _validate_cppcheck (CPPCHECK_AVAILABLE)
 
-        if (NOT CONTINUE)
+        if (NOT CPPCHECK_AVAILABLE)
 
             set (_POLYSQUARE_CPPCHECK_REASON "is unavailable")
             set (POLYSQUARE_USE_CPPCHECK OFF)
 
-        endif (NOT CONTINUE)
+        endif (NOT CPPCHECK_AVAILABLE)
 
     else (POLYSQUARE_USE_CPPCHECK)
 
@@ -126,21 +126,21 @@ macro (polysquare_clang_tidy_bootstrap)
 
         include (ClangTidy)
 
-        _validate_clang_tidy (CONTINUE)
+        _validate_clang_tidy (CLANG_TIDY_AVAILABLE)
 
-        if (CONTINUE)
+        if (CLANG_TIDY_AVAILABLE)
 
             set (POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS)
             set (POLYSQUARE_CLANG_TIDY_DEFAULT_DISABLED_CHECKS
                  "llvm-*"
                  "google-*")
 
-        else (CONTINUE)
+        else (CLANG_TIDY_AVAILABLE)
 
             set (_POLYSQUARE_CLANG_TIDY_REASON "is unavailable")
             set (POLYSQUARE_USE_CLANG_TIDY OFF)
 
-        endif (CONTINUE)
+        endif (CLANG_TIDY_AVAILABLE)
 
     else (POLYSQUARE_USE_CLANG_TIDY)
 
@@ -165,14 +165,14 @@ macro (polysquare_include_what_you_use_bootstrap)
 
         include (IncludeWhatYouUse)
 
-        _validate_include_what_you_use (CONTINUE)
+        _validate_include_what_you_use (IWYU_AVAILABLE)
 
-        if (NOT CONTINUE)
+        if (NOT IWYU_AVAILABLE)
 
             set (_POLYSQUARE_IWYU_REASON "is unavailable")
             set (POLYSQUARE_USE_IWYU OFF)
 
-        endif (NOT CONTINUE)
+        endif (NOT IWYU_AVAILABLE)
 
     else (POLYSQUARE_USE_IWYU)
 
@@ -197,14 +197,14 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
     if (POLYSQUARE_USE_VERAPP)
 
         include (VeraPPUtilities)
-        _validate_verapp (CONTINUE 1.2)
+        _validate_verapp (VERAPP_AVAILABLE 1.2)
 
-        if (NOT CONTINUE)
+        if (NOT VERAPP_AVAILABLE)
 
             set (_POLYSQUARE_VERAPP_REASON "are unavailable")
             set (POLYSQUARE_USE_VERAPP OFF)
 
-        endif (NOT CONTINUE)
+        endif (NOT VERAPP_AVAILABLE)
 
     else (POLYSQUARE_USE_VERAPP)
 
