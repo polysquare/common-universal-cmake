@@ -148,8 +148,7 @@ proc acceptPairs {} {
                             append helpLines [format "%d " $line]
                         }
 
-                        set helpLines [lsort -unique $helpLines]
-                        set reportString [format "closing curly bracket not on the same line or column $s" $helpLines]
+                        set reportString [format "closing curly bracket not on the same line or column %s" $helpLines]
 
                         report $file $rightParenLine $reportString
                     }
