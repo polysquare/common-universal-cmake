@@ -344,8 +344,7 @@ function (polysquare_add_checks_to_target TARGET)
 
             endif (CHECKS_UNUSED_CHECK_GROUP)
 
-            set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS}
-                         ${CHECKS_EXTERNAL_INCLUDE_DIRS})
+            set (INCDIRS ${CHECKS_INTERNAL_INCLUDE_DIRS})
             set (SOURCES ${TARGET_SOURCES})
             set (CHECKGEN ${CHECK_GENERATED_UNUSED_OPTION})
 
