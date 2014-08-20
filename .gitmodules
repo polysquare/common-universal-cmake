@@ -17,3 +17,6 @@
 	path = cotire
 	url = git://github.com/smspillaz/cotire
 	branch = fix_33
+[submodule "imported-project-utils"]
+	path = imported-project-utils
+	url = git://github.com/polysquare/cmake-imported-project-utils
