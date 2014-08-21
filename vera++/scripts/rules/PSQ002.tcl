@@ -7,8 +7,8 @@ foreach f [getSourceFileNames] {
     set lineNo 1
     foreach line [getAllLines $f] {
         set caringAboutConst [expr 1]
-        set scanIdentifiers {const rightparen leftparen identifier unsigned int double float char bool auto newline semicolon comma}
-        set typeIdentifiers {identifier unsigned int double float char bool auto}
+        set scanIdentifiers {const rightparen leftparen identifier unsigned int double float char bool auto void newline semicolon comma}
+        set typeIdentifiers {identifier unsigned int double float char bool auto void}
         set resetIdentifiers { leftparen newline semicolon comma }
 
         foreach t [getTokens $f $lineNo 0 [expr $lineNo + 1] -1 $scanIdentifiers] {
