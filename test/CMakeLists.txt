@@ -93,7 +93,6 @@ bootstrap_cmake_unit (INITIAL_CACHE_CONTENTS
                       POLYSQUARE_INITIAL_CACHE_CONTENTS)
 
 add_cmake_test (AddPolysquareCommonAsSubdirectory)
-add_cmake_test (AddSourcesScanTargetLanguageSet)
 add_cmake_test (CompilerFlagsSetAfterCompilerBootstrap)
 add_cmake_test (CoverageFlagsSetForGCCAfterCoverageBootstrap)
 add_cmake_test (CoverageFlagsNotSetForClangAfterCoverageBootstrap)

@@ -1,6 +1,7 @@
 # /tests/AddSourcesScanTarget.cmake
-# Adds a new target with arbitary sources and
-# runs rule checkers on them
+# Adds a new target with arbitary sources and runs rule checkers on them.
+# Also forces a particular language for the source, to ensure that the rule
+# checkers know what it is.
 #
 # See LICENCE.md for Copyright information
 
@@ -22,6 +23,7 @@ file (WRITE ${HEADER_FILE} ${HEADER_FILE_CONTENTS})
 
 polysquare_add_checked_sources (headers_check
                                 SOURCES
-                                ${HEADER_FILE})
+                                ${HEADER_FILE}
+                                FORCE_LANGUAGE CXX)
 
 assert_target_exists (headers_check)
