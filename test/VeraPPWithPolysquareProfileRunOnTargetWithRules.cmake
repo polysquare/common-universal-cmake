@@ -31,4 +31,5 @@ file (WRITE ${HEADER_FILE} ${HEADER_FILE_CONTENTS})
 polysquare_add_library (library SHARED
                         SOURCES
                         ${SOURCE_FILE}
-                        ${HEADER_FILE})
+                        ${HEADER_FILE}
+                        NO_CPPCHECK)

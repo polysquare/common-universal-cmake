@@ -240,7 +240,8 @@ set (_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS
 set (_ALL_POLYSQUARE_SOURCES_OPTION_ARGS
      ${_ALL_POLYSQUARE_CHECKS_OPTION_ARGS})
 set (_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS
-     UNUSED_CHECK_GROUP)
+     UNUSED_CHECK_GROUP
+     FORCE_LANGUAGE)
 set (_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS
      SOURCES
      INTERNAL_INCLUDE_DIRS
@@ -321,11 +322,19 @@ function (polysquare_add_checks_to_target TARGET)
 
         endif (CHECKS_CHECK_GENERATED)
 
+        set (FORCE_LANGUAGE)
+        if (CHECKS_FORCE_LANGUAGE)
+
+            set (FORCE_LANGUAGE FORCE_LANGUAGE ${CHECKS_FORCE_LANGUAGE})
+
+        endif (CHECKS_FORCE_LANGUAGE)
+
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
                                  ${CHECKS_INTERNAL_INCLUDE_DIRS}
                                  # We don't add external include dirs here
-                                 ${CHECK_GENERATED_OPT})
+                                 ${CHECK_GENERATED_OPT}
+                                 ${FORCE_LANGUAGE})
 
         if (NOT CHECKS_NO_UNUSED_CHECK)
 
@@ -468,18 +477,6 @@ function (polysquare_add_checked_sources TARGET)
 
     set (SOURCES_SCANNED_STAMP
          ${CMAKE_BINARY_DIR}/${TARGET}.stamp)
-
-    # Make sure that each source is marked as a "CXX" source.
-    # Some of the scanners will ignore source files which aren't
-    # CXX sources and we assume here that added files are valid
-    # C++.
-    foreach (SOURCE ${SOURCES_SOURCES})
-
-        set_source_files_properties (${SOURCE}
-                                     PROPERTIES LANGUAGE
-                                     CXX)
-
-    endforeach ()
 
     add_custom_target (${TARGET}_scannable
                        SOURCES ${SOURCES_SOURCES})
