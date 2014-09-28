@@ -20,3 +20,6 @@
 [submodule "imported-project-utils"]
 	path = imported-project-utils
 	url = git://github.com/polysquare/cmake-imported-project-utils
+[submodule "clang-tidy-target-cmake"]
+	path = clang-tidy-target-cmake
+	url = git://github.com/polysquare/clang-tidy-target-cmake

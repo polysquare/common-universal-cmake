@@ -132,6 +132,8 @@ add_cmake_build_test (PolysquareVeraPPRulesCopiedOnDependentTargetBuild
                       PolysquareVeraPPRulesCopiedOnDependentTargetBuildVerify)
 add_cmake_build_test (NoCPPCheckOption
                       NoCPPCheckOptionVerify)
+add_cmake_build_test (NoClangTidyOption
+                      NoClangTidyOptionVerify)
 add_cmake_build_test (NoCPPCheckUnusedOption
                       NoCPPCheckUnusedOptionVerify)
 add_cmake_build_test (NoCPPCheckUnusedGeneratedOption
@@ -144,6 +146,10 @@ add_cmake_build_test (CPPCheckRunWithCorrectIncludeDirs
                       CPPCheckRunWithCorrectIncludeDirsVerify)
 add_cmake_build_test (CPPChecksAllInternalHeadersOnGlobalUnusedCheck
                       CPPChecksAllInternalHeadersOnGlobalUnusedCheckVerify)
+add_cmake_build_test (ClangTidyEnableChecksPassed
+                      ClangTidyEnableChecksPassedVerify)
+add_cmake_build_test (ClangTidyDisableChecksPassed
+                      ClangTidyDisableChecksPassedVerify)
 add_cmake_build_test (OverrideUnusedCheckWithGroupProperty
                       OverrideUnusedCheckWithGroupPropertyVerify)
 add_cmake_build_test (ChecksCanBeRunOnGeneratedFiles
