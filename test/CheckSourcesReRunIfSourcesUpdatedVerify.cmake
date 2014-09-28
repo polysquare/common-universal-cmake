@@ -16,6 +16,10 @@ set (CPPCHECK_ON_SOURCE_FILE_REGEX
    "^.*cppcheck.*Source\\.cpp.*$")
 set (CPPCHECK_ON_GENERATED_FILE_REGEX
    "^.*cppcheck.*Generated\\.cpp.*$")
+set (CLANG_TIDY_ON_SOURCE_FILE_REGEX
+   "^.*clang-tidy.*Source\\.cpp.*$")
+set (CLANG_TIDY_ON_GENERATED_FILE_REGEX
+   "^.*clang-tidy.*Generated\\.cpp$")
 
 assert_file_has_line_matching (${BUILD_OUTPUT}
                                ${VERAPP_ON_SOURCE_FILE_REGEX})
@@ -26,3 +30,8 @@ assert_file_has_line_matching (${BUILD_OUTPUT}
                                ${CPPCHECK_ON_SOURCE_FILE_REGEX})
 assert_file_has_line_matching (${BUILD_OUTPUT}
                                ${CPPCHECK_ON_GENERATED_FILE_REGEX})
+
+assert_file_has_line_matching (${BUILD_OUTPUT}
+                               ${CLANG_TIDY_ON_SOURCE_FILE_REGEX})
+assert_file_has_line_matching (${BUILD_OUTPUT}
+                               ${CLANG_TIDY_ON_GENERATED_FILE_REGEX})

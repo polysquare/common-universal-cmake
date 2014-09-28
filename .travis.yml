@@ -7,8 +7,12 @@ before_install:
   - sudo apt-add-repository -y ppa:smspillaz/verapp-latest
   - sudo apt-add-repository -y ppa:kalakris/cmake
   - sudo apt-add-repository -y ppa:saiarcot895/chromium-dev
+  - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
+  - echo deb http://llvm.org/apt/precise/ llvm-toolchain-precise main | sudo tee --append /etc/apt/sources.list
+  - echo deb-src http://llvm.org/apt/precise/ llvm-toolchain-precise main | sudo tee --append /etc/apt/sources.list
   - sudo apt-get update -qq
-  - sudo apt-get install -qq `cat DEPENDENCIES`
+  - sudo apt-get install --force-yes `cat DEPENDENCIES`
+  - sudo ln -s /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy
   - cmake --version
   # Workaround to get Ninja to display verbose output
   - if [[ $CMAKE_GENERATOR == "Ninja" ]] ; then

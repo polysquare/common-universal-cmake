@@ -114,6 +114,31 @@ function (polysquare_cppcheck_complete_scanning)
 
 endfunction (polysquare_cppcheck_complete_scanning)
 
+macro (polysquare_clang_tidy_bootstrap)
+
+    option (POLYSQUARE_USE_CLANG_TIDY
+            "Perform simple static analysis using clang" ON)
+
+    if (POLYSQUARE_USE_CLANG_TIDY)
+
+        include (ClangTidy)
+
+        _validate_clang_tidy (CONTINUE)
+
+        if (CONTINUE)
+
+            set (_POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY ON)
+            set (POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS)
+            set (POLYSQUARE_CLANG_TIDY_DEFAULT_DISABLED_CHECKS
+                 "llvm-*"
+                 "google-*")
+
+        endif (CONTINUE)
+
+    endif (POLYSQUARE_USE_CLANG_TIDY)
+
+endmacro (polysquare_clang_tidy_bootstrap)
+
 macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
     option (POLYSQUARE_USE_VERAPP
@@ -186,14 +211,18 @@ macro (polysquare_rules_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
          ${COMMON_UNIVERSAL_CMAKE_DIR}/veracpp-cmake)
     set (CPPCHECK_CMAKE_DIRECTORY
          ${COMMON_UNIVERSAL_CMAKE_DIR}/cppcheck-target-cmake)
+    set (CLANG_TIDY_CMAKE_DIRECTORY
+         ${COMMON_UNIVERSAL_CMAKE_DIR}/clang-tidy-target-cmake)
 
     set (CMAKE_MODULE_PATH
          ${VERAPP_CMAKE_DIRECTORY}
          ${CPPCHECK_CMAKE_DIRECTORY}
+         ${CLANG_TIDY_CMAKE_DIRECTORY}
          ${CMAKE_MODULE_PATH})
 
     polysquare_vera_bootstrap (${COMMON_UNIVERSAL_CMAKE_DIR} ${BINARY_DIR})
     polysquare_cppcheck_bootstrap ()
+    polysquare_clang_tidy_bootstrap ()
 
 endmacro (polysquare_rules_bootstrap)
 
@@ -232,7 +261,12 @@ set (_ALL_POLYSQUARE_CHECKS_OPTION_ARGS
      NO_UNUSED_CHECK
      NO_UNUSED_GENERATED_CHECK
      NO_VERAPP
+     NO_CLANG_TIDY
      WARN_ONLY)
+set (_ALL_POLYSQUARE_CHECKS_MULTIVAR_ARGS
+     CLANG_TIDY_ENABLE_CHECKS
+     CLANG_TIDY_DISABLE_CHECKS)
+
 set (_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS
      NO_UNITY_BUILD
      NO_PRECOMPILED_HEADERS)
@@ -243,6 +277,7 @@ set (_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS
      UNUSED_CHECK_GROUP
      FORCE_LANGUAGE)
 set (_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS
+     ${_ALL_POLYSQUARE_CHECKS_MULTIVAR_ARGS}
      SOURCES
      INTERNAL_INCLUDE_DIRS
      EXTERNAL_INCLUDE_DIRS)
@@ -283,6 +318,11 @@ function (polysquare_add_checks_to_target TARGET)
 
     if (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
 
+        _polysquare_forward_options (CHECKS VERAPP_FORWARD_OPTIONS
+                                     OPTION_ARGS CHECK_GENERATED)
+
+        message ("VERAPP_FORWARD_OPTIONS: ${VERAPP_FORWARD_OPTIONS}")
+
         set (_verapp_check_mode ERROR)
 
         if (CHECKS_WARN_ONLY)
@@ -308,33 +348,21 @@ function (polysquare_add_checks_to_target TARGET)
                                                        ${TARGET}
                                                        ${_import_rules_target}
                                                        ${_verapp_check_mode}
-                                                       ${CHECK_GENERATED_OPT})
+                                                       ${VERAPP_FORWARD_OPTIONS})
 
     endif (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
 
+    _polysquare_forward_options (CHECKS ANALYSIS_FORWARD_OPTIONS
+                                 OPTION_ARGS CHECK_GENERATED
+                                 SINGLEVAR_ARGS FORCE_LANGUAGE)
+
     if (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
-
-        # CHECK_GENERATED is off by default
-        set (CHECK_GENERATED_OPT)
-        if (CHECKS_CHECK_GENERATED)
-
-            set (CHECK_GENERATED_OPT CHECK_GENERATED)
-
-        endif (CHECKS_CHECK_GENERATED)
-
-        set (FORCE_LANGUAGE)
-        if (CHECKS_FORCE_LANGUAGE)
-
-            set (FORCE_LANGUAGE FORCE_LANGUAGE ${CHECKS_FORCE_LANGUAGE})
-
-        endif (CHECKS_FORCE_LANGUAGE)
 
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
                                  ${CHECKS_INTERNAL_INCLUDE_DIRS}
                                  # We don't add external include dirs here
-                                 ${CHECK_GENERATED_OPT}
-                                 ${FORCE_LANGUAGE})
+                                 ${ANALYSIS_FORWARD_OPTIONS})
 
         if (NOT CHECKS_NO_UNUSED_CHECK)
 
@@ -370,6 +398,32 @@ function (polysquare_add_checks_to_target TARGET)
         endif (NOT CHECKS_NO_UNUSED_CHECK)
 
     endif (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
+
+    if (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
+
+        _polysquare_forward_options (CHECKS CLANG_TIDY_FORWARD_OPTIONS
+                                     OPTION_ARGS WARN_ONLY)
+
+        set (DEFAULT_ENABLED_CHECKS
+             ${POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS})
+        set (DEFAULT_DISABLED_CHECKS
+             ${POLYSQUARE_CLANG_TIDY_DEFAULT_DISABLED_CHECKS})
+        clang_tidy_check_target_sources (${TARGET}
+                                         ${CLANG_TIDY_FORWARD_OPTIONS}
+                                         ${ANALYSIS_FORWARD_OPTIONS}
+                                         INTERNAL_INCLUDE_DIRS
+                                         ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                                         EXTERNAL_INCLUDE_DIRS
+                                         ${CHECKS_EXTERNAL_INCLUDE_DIRS}
+                                         ENABLE_CHECKS
+                                         ${DEFAULT_ENABLED_CHECKS}
+                                         ${CHECKS_CLANG_TIDY_ENABLE_CHECKS}
+                                         DISABLE_CHECKS
+                                         ${DEFAULT_DISABLED_CHECKS}
+                                         ${CHECKS_CLANG_TIDY_DISABLE_CHECKS})
+        message ("CHECKS ${CHECKS_CLANG_TIDY_DISABLE_CHECKS}")
+
+    endif (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
 
 endfunction (polysquare_add_checks_to_target)
 
@@ -416,7 +470,12 @@ function (_polysquare_forward_options PREFIX RETURN_LIST_NAME)
     foreach (OPTION_ARG ${FORWARD_OPTION_ARGS})
 
         set (PREFIXED_OPTION_ARG ${PREFIX}_${OPTION_ARG})
-        list (APPEND RETURN_LIST ${${PREFIXED_OPTION_ARG}})
+
+        if (${PREFIXED_OPTION_ARG})
+
+             list (APPEND RETURN_LIST ${OPTION_ARG})
+
+        endif (${PREFIXED_OPTION_ARG})
 
     endforeach ()
 
