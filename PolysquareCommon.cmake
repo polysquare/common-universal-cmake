@@ -421,7 +421,6 @@ function (polysquare_add_checks_to_target TARGET)
                                          DISABLE_CHECKS
                                          ${DEFAULT_DISABLED_CHECKS}
                                          ${CHECKS_CLANG_TIDY_DISABLE_CHECKS})
-        message ("CHECKS ${CHECKS_CLANG_TIDY_DISABLE_CHECKS}")
 
     endif (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
 
