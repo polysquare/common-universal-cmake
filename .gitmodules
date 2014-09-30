@@ -23,3 +23,6 @@
 [submodule "clang-tidy-target-cmake"]
 	path = clang-tidy-target-cmake
 	url = git://github.com/polysquare/clang-tidy-target-cmake
+[submodule "include-what-you-use-target-cmake"]
+	path = include-what-you-use-target-cmake
+	url = git://github.com/polysquare/include-what-you-use-target-cmake

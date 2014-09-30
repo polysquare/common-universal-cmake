@@ -139,6 +139,27 @@ macro (polysquare_clang_tidy_bootstrap)
 
 endmacro (polysquare_clang_tidy_bootstrap)
 
+macro (polysquare_include_what_you_use_bootstrap)
+
+    option (POLYSQUARE_USE_IWYU
+            "Perform checks to ensure that there are no unecessary #includes")
+
+    if (POLYSQUARE_USE_IWYU)
+
+        include (IncludeWhatYouUse)
+
+        _validate_include_what_you_use (CONTINUE)
+
+        if (CONTINUE)
+
+            set (_POLYSQUARE_BOOTSTRAPPED_IWYU ON)
+
+        endif (CONTINUE)
+
+    endif (POLYSQUARE_USE_IWYU)
+
+endmacro (polysquare_include_what_you_use_bootstrap)
+
 macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
     option (POLYSQUARE_USE_VERAPP
@@ -213,16 +234,20 @@ macro (polysquare_rules_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
          ${COMMON_UNIVERSAL_CMAKE_DIR}/cppcheck-target-cmake)
     set (CLANG_TIDY_CMAKE_DIRECTORY
          ${COMMON_UNIVERSAL_CMAKE_DIR}/clang-tidy-target-cmake)
+    set (IWYU_CMAKE_DIRECTORY
+         ${COMMON_UNIVERSAL_CMAKE_DIR}/include-what-you-use-target-cmake)
 
     set (CMAKE_MODULE_PATH
          ${VERAPP_CMAKE_DIRECTORY}
          ${CPPCHECK_CMAKE_DIRECTORY}
          ${CLANG_TIDY_CMAKE_DIRECTORY}
+         ${IWYU_CMAKE_DIRECTORY}
          ${CMAKE_MODULE_PATH})
 
     polysquare_vera_bootstrap (${COMMON_UNIVERSAL_CMAKE_DIR} ${BINARY_DIR})
     polysquare_cppcheck_bootstrap ()
     polysquare_clang_tidy_bootstrap ()
+    polysquare_include_what_you_use_bootstrap ()
 
 endmacro (polysquare_rules_bootstrap)
 
@@ -262,6 +287,7 @@ set (_ALL_POLYSQUARE_CHECKS_OPTION_ARGS
      NO_UNUSED_GENERATED_CHECK
      NO_VERAPP
      NO_CLANG_TIDY
+     NO_IWYU
      WARN_ONLY)
 set (_ALL_POLYSQUARE_CHECKS_MULTIVAR_ARGS
      CLANG_TIDY_ENABLE_CHECKS
@@ -423,6 +449,21 @@ function (polysquare_add_checks_to_target TARGET)
                                          ${CHECKS_CLANG_TIDY_DISABLE_CHECKS})
 
     endif (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
+
+    if (NOT CHECKS_NO_IWYU AND _POLYSQUARE_BOOTSTRAPPED_IWYU)
+
+        _polysquare_forward_options (CHECKS IWYU_FORWARD_OPTIONS
+                                     OPTION_ARGS WARN_ONLY)
+
+        iwyu_check_target_sources (${TARGET}
+                                   ${IWYU_FORWARD_OPTIONS}
+                                   ${ANALYSIS_FORWARD_OPTIONS}
+                                   INTERNAL_INCLUDE_DIRS
+                                   ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                                   EXTERNAL_INCLUDE_DIRS
+                                   ${CHECKS_EXTERNAL_INCLUDE_DIRS})
+
+    endif (NOT CHECKS_NO_IWYU AND _POLYSQUARE_BOOTSTRAPPED_IWYU)
 
 endfunction (polysquare_add_checks_to_target)
 

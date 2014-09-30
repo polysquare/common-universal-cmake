@@ -136,6 +136,8 @@ add_cmake_build_test (NoClangTidyOption
                       NoClangTidyOptionVerify)
 add_cmake_build_test (NoCPPCheckUnusedOption
                       NoCPPCheckUnusedOptionVerify)
+add_cmake_build_test (NoIncludeWhatYouUseOption
+                      NoIncludeWhatYouUseOptionVerify)
 add_cmake_build_test (NoCPPCheckUnusedGeneratedOption
                       NoCPPCheckUnusedGeneratedOptionVerify)
 add_cmake_build_test (NoVeraPPOption

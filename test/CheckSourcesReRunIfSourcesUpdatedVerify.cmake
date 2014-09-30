@@ -20,6 +20,10 @@ set (CLANG_TIDY_ON_SOURCE_FILE_REGEX
    "^.*clang-tidy.*Source\\.cpp.*$")
 set (CLANG_TIDY_ON_GENERATED_FILE_REGEX
    "^.*clang-tidy.*Generated\\.cpp$")
+set (IWYU_ON_SOURCE_FILE_REGEX
+   "^.*include-what-you-use*Source\\.cpp.*$")
+set (IWYU_ON_GENERATED_FILE_REGEX
+   "^.*include-what-you-use.*Generated\\.cpp$")
 
 assert_file_has_line_matching (${BUILD_OUTPUT}
                                ${VERAPP_ON_SOURCE_FILE_REGEX})
