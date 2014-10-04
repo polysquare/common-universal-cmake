@@ -297,9 +297,12 @@ set (_ALL_POLYSQUARE_CHECKS_OPTION_ARGS
      NO_CLANG_TIDY
      NO_IWYU
      WARN_ONLY)
+set (_ALL_POLYSQUARE_CHECKS_SINGLEVAR_ARGS
+     FORCE_LANGUAGE)
 set (_ALL_POLYSQUARE_CHECKS_MULTIVAR_ARGS
      CLANG_TIDY_ENABLE_CHECKS
-     CLANG_TIDY_DISABLE_CHECKS)
+     CLANG_TIDY_DISABLE_CHECKS
+     CPP_IDENTIFIERS)
 
 set (_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS
      NO_UNITY_BUILD
@@ -308,13 +311,14 @@ set (_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS
 set (_ALL_POLYSQUARE_SOURCES_OPTION_ARGS
      ${_ALL_POLYSQUARE_CHECKS_OPTION_ARGS})
 set (_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS
-     UNUSED_CHECK_GROUP
-     FORCE_LANGUAGE)
+     ${_ALL_POLYSQUARE_CHECKS_SINGLEVAR_ARGS}
+     UNUSED_CHECK_GROUP)
 set (_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS
      ${_ALL_POLYSQUARE_CHECKS_MULTIVAR_ARGS}
      SOURCES
      INTERNAL_INCLUDE_DIRS
-     EXTERNAL_INCLUDE_DIRS)
+     EXTERNAL_INCLUDE_DIRS
+     DEFINES)
 
 set (_ALL_POLYSQUARE_BINARY_OPTION_ARGS
      ${_ALL_POLYSQUARE_SOURCES_OPTION_ARGS}
@@ -387,8 +391,10 @@ function (polysquare_add_checks_to_target TARGET)
     endif (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
 
     _polysquare_forward_options (CHECKS ANALYSIS_FORWARD_OPTIONS
-                                 OPTION_ARGS CHECK_GENERATED
-                                 SINGLEVAR_ARGS FORCE_LANGUAGE)
+                                 SINGLEVAR_ARGS FORCE_LANGUAGE
+                                 MULTIVAR_ARGS
+                                 DEFINES
+                                 CPP_IDENTIFIERS)
 
     if (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
@@ -433,17 +439,20 @@ function (polysquare_add_checks_to_target TARGET)
 
     endif (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
-    if (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
+    _polysquare_forward_options (CHECKS CLANG_CHECKS_FORWARD_OPTIONS
+                                 MULTIVAR_ARGS
+                                 INTERNAL_INCLUDE_DIRS
+                                 EXTERNAL_INCLUDE_DIRS)
 
-        _polysquare_forward_options (CHECKS CLANG_TIDY_FORWARD_OPTIONS
-                                     OPTION_ARGS WARN_ONLY)
+    if (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
 
         set (DEFAULT_ENABLED_CHECKS
              ${POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS})
         set (DEFAULT_DISABLED_CHECKS
              ${POLYSQUARE_CLANG_TIDY_DEFAULT_DISABLED_CHECKS})
         clang_tidy_check_target_sources (${TARGET}
-                                         ${CLANG_TIDY_FORWARD_OPTIONS}
+                                         ${ALL_CHECKS_FORWARD_OPTIONS}
+                                         ${CLANG_CHECKS_FORWARD_OPTIONS}
                                          ${ANALYSIS_FORWARD_OPTIONS}
                                          INTERNAL_INCLUDE_DIRS
                                          ${CHECKS_INTERNAL_INCLUDE_DIRS}
@@ -757,6 +766,12 @@ function (_polysquare_add_target_internal TARGET)
         #               ${TARGET_EXTERNAL_INCLUDE_DIRS})
 
     endif (TARGET_INTERNAL_INCLUDE_DIRS OR TARGET_EXTERNAL_INCLUDE_DIRS)
+
+    foreach (DEFINE ${TARGET_DEFINES})
+
+        add_definitions (-D${DEFINE})
+
+    endforeach ()
 
     if (TARGET_EXPORT_HEADER_DIRECTORY)
 

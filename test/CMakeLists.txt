@@ -126,6 +126,14 @@ add_cmake_build_test (AddTestTargetLinkedToLibraries VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMatcher VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMock VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMainLibrary VerifyGTest)
+add_cmake_build_test (CheckSourcesRunWithCorrectIncludeDirs
+                      CheckSourcesRunWithCorrectIncludeDirsVerify)
+add_cmake_build_test (CheckSourcesRunWithCorrectDefines
+                      CheckSourcesRunWithCorrectDefinesVerify)
+add_cmake_build_test (CheckSourcesRunWithCPPIdentifiers
+                      CheckSourcesRunWithCPPIdentifiersVerify)
+add_cmake_build_test (CheckSourcesRunWithForcedLanguage
+                      CheckSourcesRunWithForcedLanguageVerify)
 add_cmake_build_test (ExternalHeadersAreSystemHeaders
                       ExternalHeadersAreSystemHeadersVerify)
 add_cmake_build_test (PolysquareVeraPPRulesCopiedOnDependentTargetBuild
