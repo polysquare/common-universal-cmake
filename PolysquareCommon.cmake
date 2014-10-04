@@ -208,19 +208,20 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
         verapp_import_default_rules_into_subdirectory_on_target (${_r_out_dir}
                                                                  ${_i_target})
 
-        verapp_copy_files_in_dir_to_subdir_on_target (${_rules_in_dir}
-                                                      ${_r_out_dir}
-                                                      .tcl
-                                                      ${_copy_rules_target}
+        verapp_copy_files_in_dir_to_subdir_on_target (${_copy_rules_target}
+                                                      DIRECTORY ${_rules_in_dir}
+                                                      DESTINATION ${_r_out_dir}
+                                                      MATCH *.tcl
                                                       "Vera++ rule")
 
         add_dependencies (${_i_target} polysquare_verapp_copy_rules)
 
-        verapp_copy_files_in_dir_to_subdir_on_target (${_profiles_in_dir}
+        verapp_copy_files_in_dir_to_subdir_on_target (${_copy_profiles_target}
+                                                      DIRECTORY
+                                                      ${_profiles_in_dir}
+                                                      DESTINATION
                                                       ${_profiles_out_dir}
-                                                      NO_MATCH
-                                                      ${_copy_profiles_target}
-                                                      "Vera++ profile")
+                                                      COMMENT "Vera++ profile")
 
         add_dependencies (${_i_target} polysquare_verapp_copy_profiles)
 
@@ -354,39 +355,22 @@ function (polysquare_add_checks_to_target TARGET)
 
     endif (CHECKS_UNPARSED_ARGUMENTS)
 
+    _polysquare_forward_options (CHECKS ALL_CHECKS_FORWARD_OPTIONS
+                                 OPTION_ARGS WARN_ONLY CHECK_GENERATED)
+
     if (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
-
-        _polysquare_forward_options (CHECKS VERAPP_FORWARD_OPTIONS
-                                     OPTION_ARGS CHECK_GENERATED)
-
-        message ("VERAPP_FORWARD_OPTIONS: ${VERAPP_FORWARD_OPTIONS}")
-
-        set (_verapp_check_mode ERROR)
-
-        if (CHECKS_WARN_ONLY)
-
-            set (_verapp_check_mode WARN_ONLY)
-
-        endif (CHECKS_WARN_ONLY)
 
         set (_verapp_output_dir ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY})
         set (_verapp_profile ${_POLYSQUARE_VERAPP_PROFILE})
         set (_import_rules_target ${_POLYSQUARE_VERAPP_IMPORT_RULES})
 
-        # CHECK_GENERATED is off by default
-        set (CHECK_GENERATED_OPT)
-        if (CHECKS_CHECK_GENERATED)
-
-            set (CHECK_GENERATED_OPT CHECK_GENERATED)
-
-        endif (CHECKS_CHECK_GENERATED)
-
         verapp_profile_check_source_files_conformance (${_verapp_output_dir}
-                                                       ${_profile}
-                                                       ${TARGET}
+                                                       PROFILE ${_profile}
+                                                       TARGET ${TARGET}
+                                                       DEPENDS
                                                        ${_import_rules_target}
                                                        ${_verapp_check_mode}
-                                                       ${VERAPP_FORWARD_OPTIONS})
+                                                       ${ALL_CHECKS_FORWARD_OPTIONS})
 
     endif (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
 
@@ -401,6 +385,7 @@ function (polysquare_add_checks_to_target TARGET)
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
                                  ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                                 ${ALL_CHECKS_FORWARD_OPTIONS}
                                  # We don't add external include dirs here
                                  ${ANALYSIS_FORWARD_OPTIONS})
 
