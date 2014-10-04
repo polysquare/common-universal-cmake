@@ -86,7 +86,13 @@ macro (polysquare_cppcheck_bootstrap)
 
         include (CPPCheck)
 
-        set (_POLYSQUARE_BOOTSTRAPPED_CPPCHECK TRUE)
+        _validate_cppcheck (CONTINUE)
+
+        if (CONTINUE)
+
+            set (_POLYSQUARE_BOOTSTRAPPED_CPPCHECK TRUE)
+
+        endif (CONTINUE)
 
     else (POLYSQUARE_USE_CPPCHECK)
 
@@ -135,6 +141,10 @@ macro (polysquare_clang_tidy_bootstrap)
 
         endif (CONTINUE)
 
+    else (POLYSQUARE_USE_CLANG_TIDY)
+
+        message (STATUS "clang-tidy analysis has been disabled.")
+
     endif (POLYSQUARE_USE_CLANG_TIDY)
 
 endmacro (polysquare_clang_tidy_bootstrap)
@@ -142,7 +152,7 @@ endmacro (polysquare_clang_tidy_bootstrap)
 macro (polysquare_include_what_you_use_bootstrap)
 
     option (POLYSQUARE_USE_IWYU
-            "Perform checks to ensure that there are no unecessary #includes")
+            "Perform checks to ensure that there are no unecessary #includes" ON)
 
     if (POLYSQUARE_USE_IWYU)
 
@@ -155,6 +165,10 @@ macro (polysquare_include_what_you_use_bootstrap)
             set (_POLYSQUARE_BOOTSTRAPPED_IWYU ON)
 
         endif (CONTINUE)
+
+    else (POLYSQUARE_USE_IWYU)
+
+        message (STATUS "include-what-you-use analysis has been disabled.")
 
     endif (POLYSQUARE_USE_IWYU)
 
@@ -200,19 +214,20 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
         verapp_import_default_rules_into_subdirectory_on_target (${_r_out_dir}
                                                                  ${_i_target})
 
-        verapp_copy_files_in_dir_to_subdir_on_target (${_rules_in_dir}
-                                                      ${_r_out_dir}
-                                                      .tcl
-                                                      ${_copy_rules_target}
+        verapp_copy_files_in_dir_to_subdir_on_target (${_copy_rules_target}
+                                                      DIRECTORY ${_rules_in_dir}
+                                                      DESTINATION ${_r_out_dir}
+                                                      MATCH *.tcl
                                                       "Vera++ rule")
 
         add_dependencies (${_i_target} polysquare_verapp_copy_rules)
 
-        verapp_copy_files_in_dir_to_subdir_on_target (${_profiles_in_dir}
+        verapp_copy_files_in_dir_to_subdir_on_target (${_copy_profiles_target}
+                                                      DIRECTORY
+                                                      ${_profiles_in_dir}
+                                                      DESTINATION
                                                       ${_profiles_out_dir}
-                                                      NO_MATCH
-                                                      ${_copy_profiles_target}
-                                                      "Vera++ profile")
+                                                      COMMENT "Vera++ profile")
 
         add_dependencies (${_i_target} polysquare_verapp_copy_profiles)
 
@@ -289,9 +304,12 @@ set (_ALL_POLYSQUARE_CHECKS_OPTION_ARGS
      NO_CLANG_TIDY
      NO_IWYU
      WARN_ONLY)
+set (_ALL_POLYSQUARE_CHECKS_SINGLEVAR_ARGS
+     FORCE_LANGUAGE)
 set (_ALL_POLYSQUARE_CHECKS_MULTIVAR_ARGS
      CLANG_TIDY_ENABLE_CHECKS
-     CLANG_TIDY_DISABLE_CHECKS)
+     CLANG_TIDY_DISABLE_CHECKS
+     CPP_IDENTIFIERS)
 
 set (_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS
      NO_UNITY_BUILD
@@ -300,13 +318,14 @@ set (_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS
 set (_ALL_POLYSQUARE_SOURCES_OPTION_ARGS
      ${_ALL_POLYSQUARE_CHECKS_OPTION_ARGS})
 set (_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS
-     UNUSED_CHECK_GROUP
-     FORCE_LANGUAGE)
+     ${_ALL_POLYSQUARE_CHECKS_SINGLEVAR_ARGS}
+     UNUSED_CHECK_GROUP)
 set (_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS
      ${_ALL_POLYSQUARE_CHECKS_MULTIVAR_ARGS}
      SOURCES
      INTERNAL_INCLUDE_DIRS
-     EXTERNAL_INCLUDE_DIRS)
+     EXTERNAL_INCLUDE_DIRS
+     DEFINES)
 
 set (_ALL_POLYSQUARE_BINARY_OPTION_ARGS
      ${_ALL_POLYSQUARE_SOURCES_OPTION_ARGS}
@@ -342,51 +361,37 @@ function (polysquare_add_checks_to_target TARGET)
 
     endif (CHECKS_UNPARSED_ARGUMENTS)
 
+    _polysquare_forward_options (CHECKS ALL_CHECKS_FORWARD_OPTIONS
+                                 OPTION_ARGS WARN_ONLY CHECK_GENERATED)
+
     if (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
-
-        _polysquare_forward_options (CHECKS VERAPP_FORWARD_OPTIONS
-                                     OPTION_ARGS CHECK_GENERATED)
-
-        message ("VERAPP_FORWARD_OPTIONS: ${VERAPP_FORWARD_OPTIONS}")
-
-        set (_verapp_check_mode ERROR)
-
-        if (CHECKS_WARN_ONLY)
-
-            set (_verapp_check_mode WARN_ONLY)
-
-        endif (CHECKS_WARN_ONLY)
 
         set (_verapp_output_dir ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY})
         set (_verapp_profile ${_POLYSQUARE_VERAPP_PROFILE})
         set (_import_rules_target ${_POLYSQUARE_VERAPP_IMPORT_RULES})
 
-        # CHECK_GENERATED is off by default
-        set (CHECK_GENERATED_OPT)
-        if (CHECKS_CHECK_GENERATED)
-
-            set (CHECK_GENERATED_OPT CHECK_GENERATED)
-
-        endif (CHECKS_CHECK_GENERATED)
-
         verapp_profile_check_source_files_conformance (${_verapp_output_dir}
-                                                       ${_profile}
-                                                       ${TARGET}
+                                                       PROFILE ${_profile}
+                                                       TARGET ${TARGET}
+                                                       DEPENDS
                                                        ${_import_rules_target}
                                                        ${_verapp_check_mode}
-                                                       ${VERAPP_FORWARD_OPTIONS})
+                                                       ${ALL_CHECKS_FORWARD_OPTIONS})
 
     endif (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
 
     _polysquare_forward_options (CHECKS ANALYSIS_FORWARD_OPTIONS
-                                 OPTION_ARGS CHECK_GENERATED
-                                 SINGLEVAR_ARGS FORCE_LANGUAGE)
+                                 SINGLEVAR_ARGS FORCE_LANGUAGE
+                                 MULTIVAR_ARGS
+                                 DEFINES
+                                 CPP_IDENTIFIERS)
 
     if (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
                                  ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                                 ${ALL_CHECKS_FORWARD_OPTIONS}
                                  # We don't add external include dirs here
                                  ${ANALYSIS_FORWARD_OPTIONS})
 
@@ -425,17 +430,20 @@ function (polysquare_add_checks_to_target TARGET)
 
     endif (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
 
-    if (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
+    _polysquare_forward_options (CHECKS CLANG_CHECKS_FORWARD_OPTIONS
+                                 MULTIVAR_ARGS
+                                 INTERNAL_INCLUDE_DIRS
+                                 EXTERNAL_INCLUDE_DIRS)
 
-        _polysquare_forward_options (CHECKS CLANG_TIDY_FORWARD_OPTIONS
-                                     OPTION_ARGS WARN_ONLY)
+    if (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
 
         set (DEFAULT_ENABLED_CHECKS
              ${POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS})
         set (DEFAULT_DISABLED_CHECKS
              ${POLYSQUARE_CLANG_TIDY_DEFAULT_DISABLED_CHECKS})
         clang_tidy_check_target_sources (${TARGET}
-                                         ${CLANG_TIDY_FORWARD_OPTIONS}
+                                         ${ALL_CHECKS_FORWARD_OPTIONS}
+                                         ${CLANG_CHECKS_FORWARD_OPTIONS}
                                          ${ANALYSIS_FORWARD_OPTIONS}
                                          INTERNAL_INCLUDE_DIRS
                                          ${CHECKS_INTERNAL_INCLUDE_DIRS}
@@ -452,16 +460,14 @@ function (polysquare_add_checks_to_target TARGET)
 
     if (NOT CHECKS_NO_IWYU AND _POLYSQUARE_BOOTSTRAPPED_IWYU)
 
-        _polysquare_forward_options (CHECKS IWYU_FORWARD_OPTIONS
-                                     OPTION_ARGS WARN_ONLY)
-
-        iwyu_check_target_sources (${TARGET}
-                                   ${IWYU_FORWARD_OPTIONS}
-                                   ${ANALYSIS_FORWARD_OPTIONS}
-                                   INTERNAL_INCLUDE_DIRS
-                                   ${CHECKS_INTERNAL_INCLUDE_DIRS}
-                                   EXTERNAL_INCLUDE_DIRS
-                                   ${CHECKS_EXTERNAL_INCLUDE_DIRS})
+        iwyu_target_sources (${TARGET}
+                             ${ALL_CHECKS_FORWARD_OPTIONS}
+                             ${CLANG_CHECKS_FORWARD_OPTIONS}
+                             ${ANALYSIS_FORWARD_OPTIONS}
+                             INTERNAL_INCLUDE_DIRS
+                             ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                             EXTERNAL_INCLUDE_DIRS
+                             ${CHECKS_EXTERNAL_INCLUDE_DIRS})
 
     endif (NOT CHECKS_NO_IWYU AND _POLYSQUARE_BOOTSTRAPPED_IWYU)
 
@@ -751,6 +757,12 @@ function (_polysquare_add_target_internal TARGET)
         #               ${TARGET_EXTERNAL_INCLUDE_DIRS})
 
     endif (TARGET_INTERNAL_INCLUDE_DIRS OR TARGET_EXTERNAL_INCLUDE_DIRS)
+
+    foreach (DEFINE ${TARGET_DEFINES})
+
+        add_definitions (-D${DEFINE})
+
+    endforeach ()
 
     if (TARGET_EXPORT_HEADER_DIRECTORY)
 

@@ -46,6 +46,8 @@ get_filename_component (POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY
 include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/PolysquareCommon.cmake)
 
 polysquare_gmock_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_rules_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
+                            ${CMAKE_CURRENT_BINARY_DIR})
 
 set (CMAKE_UNIT_DIRECTORY
      ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/cmake-unit)
@@ -81,6 +83,15 @@ set (POLYSQUARE_INITIAL_CACHE_CONTENTS
      "     CACHE STRING \"\" FORCE)\n"
      "set (GMOCK_EXTERNAL_SET_MAIN_LIBRARY\n"
      "     ${REAL_GMOCK_MAIN_LIBRARY}\n"
+     "     CACHE STRING \"\" FORCE)\n"
+     "set (CMAKE_CXX_FLAGS\n"
+     "     ${CMAKE_CXX_FLAGS}\n"
+     "     CACHE STRING \"\" FORCE)\n"
+     "set (CMAKE_C_FLAGS\n"
+     "     ${CMAKE_C_FLAGS}\n"
+     "     CACHE STRING \"\" FORCE)\n"
+     "set (CPPCHECK_VERSION\n"
+     "     ${CPPCHECK_VERSION}\n"
      "     CACHE STRING \"\" FORCE)\n")
 
 set (CMAKE_MODULE_PATH
@@ -126,6 +137,14 @@ add_cmake_build_test (AddTestTargetLinkedToLibraries VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMatcher VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMock VerifyGTest)
 add_cmake_build_test (AddTestLinkedToMainLibrary VerifyGTest)
+add_cmake_build_test (CheckSourcesRunWithCorrectIncludeDirs
+                      CheckSourcesRunWithCorrectIncludeDirsVerify)
+add_cmake_build_test (CheckSourcesRunWithCorrectDefines
+                      CheckSourcesRunWithCorrectDefinesVerify)
+add_cmake_build_test (CheckSourcesRunWithCPPIdentifiers
+                      CheckSourcesRunWithCPPIdentifiersVerify)
+add_cmake_build_test (CheckSourcesRunWithForcedLanguage
+                      CheckSourcesRunWithForcedLanguageVerify)
 add_cmake_build_test (ExternalHeadersAreSystemHeaders
                       ExternalHeadersAreSystemHeadersVerify)
 add_cmake_build_test (PolysquareVeraPPRulesCopiedOnDependentTargetBuild
