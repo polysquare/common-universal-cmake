@@ -32,4 +32,5 @@ polysquare_add_library (library SHARED
                         SOURCES
                         ${SOURCE_FILE}
                         ${HEADER_FILE}
-                        NO_CPPCHECK)
+                        NO_CPPCHECK
+                        NO_IWYU)

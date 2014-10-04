@@ -146,7 +146,7 @@ endmacro (polysquare_clang_tidy_bootstrap)
 macro (polysquare_include_what_you_use_bootstrap)
 
     option (POLYSQUARE_USE_IWYU
-            "Perform checks to ensure that there are no unecessary #includes")
+            "Perform checks to ensure that there are no unecessary #includes" ON)
 
     if (POLYSQUARE_USE_IWYU)
 
@@ -159,6 +159,10 @@ macro (polysquare_include_what_you_use_bootstrap)
             set (_POLYSQUARE_BOOTSTRAPPED_IWYU ON)
 
         endif (CONTINUE)
+
+    else (POLYSQUARE_USE_IWYU)
+
+        message (STATUS "include-what-you-use analysis has been disabled.")
 
     endif (POLYSQUARE_USE_IWYU)
 
@@ -456,16 +460,14 @@ function (polysquare_add_checks_to_target TARGET)
 
     if (NOT CHECKS_NO_IWYU AND _POLYSQUARE_BOOTSTRAPPED_IWYU)
 
-        _polysquare_forward_options (CHECKS IWYU_FORWARD_OPTIONS
-                                     OPTION_ARGS WARN_ONLY)
-
-        iwyu_check_target_sources (${TARGET}
-                                   ${IWYU_FORWARD_OPTIONS}
-                                   ${ANALYSIS_FORWARD_OPTIONS}
-                                   INTERNAL_INCLUDE_DIRS
-                                   ${CHECKS_INTERNAL_INCLUDE_DIRS}
-                                   EXTERNAL_INCLUDE_DIRS
-                                   ${CHECKS_EXTERNAL_INCLUDE_DIRS})
+        iwyu_target_sources (${TARGET}
+                             ${ALL_CHECKS_FORWARD_OPTIONS}
+                             ${CLANG_CHECKS_FORWARD_OPTIONS}
+                             ${ANALYSIS_FORWARD_OPTIONS}
+                             INTERNAL_INCLUDE_DIRS
+                             ${CHECKS_INTERNAL_INCLUDE_DIRS}
+                             EXTERNAL_INCLUDE_DIRS
+                             ${CHECKS_EXTERNAL_INCLUDE_DIRS})
 
     endif (NOT CHECKS_NO_IWYU AND _POLYSQUARE_BOOTSTRAPPED_IWYU)
 
