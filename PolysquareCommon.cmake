@@ -135,6 +135,10 @@ macro (polysquare_clang_tidy_bootstrap)
 
         endif (CONTINUE)
 
+    else (POLYSQUARE_USE_CLANG_TIDY)
+
+        message (STATUS "clang-tidy analysis has been disabled.")
+
     endif (POLYSQUARE_USE_CLANG_TIDY)
 
 endmacro (polysquare_clang_tidy_bootstrap)
