@@ -86,7 +86,13 @@ macro (polysquare_cppcheck_bootstrap)
 
         include (CPPCheck)
 
-        set (_POLYSQUARE_BOOTSTRAPPED_CPPCHECK TRUE)
+        _validate_cppcheck (CONTINUE)
+
+        if (CONTINUE)
+
+            set (_POLYSQUARE_BOOTSTRAPPED_CPPCHECK TRUE)
+
+        endif (CONTINUE)
 
     else (POLYSQUARE_USE_CPPCHECK)
 

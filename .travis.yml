@@ -2,6 +2,7 @@ language: cpp
 env:
   - CMAKE_GENERATOR="Unix Makefiles"
   - CMAKE_GENERATOR="Ninja"
+  - CMAKE_GENERATOR="Unix Makefiles" USE_NEW_CPPCHECK=1
 before_install:
   - git submodule update --init --recursive
   - sudo apt-add-repository -y ppa:smspillaz/verapp-latest
@@ -12,6 +13,13 @@ before_install:
   - echo deb-src http://llvm.org/apt/precise/ llvm-toolchain-precise main | sudo tee --append /etc/apt/sources.list
   - sudo apt-get update -qq
   - sudo apt-get install --force-yes `cat DEPENDENCIES`
+  - if [[ $USE_NEW_CPPCHECK == 1 ]] ; then
+      wget http://archive.ubuntu.com/ubuntu/pool/universe/t/tinyxml2/libtinyxml2-0.0.0_0~git20120518.1.a2ae54e-1_amd64.deb;
+      wget http://archive.ubuntu.com/ubuntu/pool/universe/c/cppcheck/cppcheck_1.60.1-1_amd64.deb;
+      sudo dpkg -i libtinyxml2-0.0.0_0~git20120518.1.a2ae54e-1_amd64.deb cppcheck_1.60.1-1_amd64.deb;
+    fi;
+  - wget http://launchpadlibrarian.net/162564634/iwyu_3.3-4_amd64.deb
+  - sudo dpkg -i --force-depends iwyu_3.3-4_amd64.deb
   - sudo ln -s /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy
   - cmake --version
   # Workaround to get Ninja to display verbose output

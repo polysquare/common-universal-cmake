@@ -19,6 +19,9 @@ set (CLANG_TIDY_REGEX
 set (IWYU_REGEX
      "^.*include-what-you-use.*-x c.*Header.h")
 
-assert_file_has_line_matching (${BUILD_OUTPUT} ${CPPCHECK_REGEX})
+# We can't check for the cppcheck regex on certain versions
+if (NOT ${CPPCHECK_VERSION} VERSION_LESS 1.58)
+    assert_file_has_line_matching (${BUILD_OUTPUT} ${CPPCHECK_REGEX})
+endif (NOT ${CPPCHECK_VERSION} VERSION_LESS 1.58)
 assert_file_has_line_matching (${BUILD_OUTPUT} ${IWYU_REGEX})
 assert_file_has_line_matching (${COMPILE_COMMANDS} ${CLANG_TIDY_REGEX})
