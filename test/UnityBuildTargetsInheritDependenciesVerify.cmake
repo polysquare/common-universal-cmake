@@ -4,7 +4,7 @@
 #
 # See LICENCE.md for Copyright information.
 
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
+include (CMakeUnit)
 set (CUSTOM_COMMAND_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/custom_command_output)
 
 assert_file_exists (${CUSTOM_COMMAND_OUTPUT})

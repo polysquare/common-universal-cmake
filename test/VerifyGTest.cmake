@@ -4,7 +4,7 @@
 #
 # See LICENCE.md for Copyright information
 
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
+include (CMakeUnit)
 
 set (TEST_BINARY ${CMAKE_CURRENT_BINARY_DIR}/unittest)
 assert_command_executes_with_success (TEST_BINARY)

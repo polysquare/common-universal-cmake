@@ -3,6 +3,6 @@
 #
 # See LICENCE.md for Copyright information
 
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
+include (CMakeUnit)
 
 assert_file_exists (${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json)

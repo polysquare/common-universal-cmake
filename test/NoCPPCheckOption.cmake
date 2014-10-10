@@ -11,8 +11,8 @@
 #
 # See LICENCE.md for Copyright information
 
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/PolysquareCommon.cmake)
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
+include (PolysquareCommon)
+include (CMakeUnit)
 
 set (POLYSQUARE_USE_CPPCHECK OFF CACHE BOOL "" FORCE)
 

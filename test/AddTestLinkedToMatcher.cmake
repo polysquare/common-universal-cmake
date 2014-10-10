@@ -4,12 +4,8 @@
 #
 # See LICENCE.md for Copyright information
 
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/PolysquareCommon.cmake)
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
-
-set (CMAKE_MODULE_PATH
-     ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/gmock-cmake
-     ${CMAKE_MODULE_PATH})
+include (PolysquareCommon)
+include (CMakeUnit)
 
 polysquare_gmock_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
 
