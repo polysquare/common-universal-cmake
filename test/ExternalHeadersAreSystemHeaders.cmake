@@ -4,8 +4,8 @@
 #
 # See LICENCE.md for Copyright information
 
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/PolysquareCommon.cmake)
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
+include (PolysquareCommon)
+include (CMakeUnit)
 
 set (SOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Source.cpp)
 set (SOURCE_FILE_CONTENTS "")

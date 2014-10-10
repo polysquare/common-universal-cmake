@@ -4,8 +4,8 @@
 #
 # See LICENCE.md for Copyright information
 
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/PolysquareCommon.cmake)
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
+include (PolysquareCommon)
+include (CMakeUnit)
 
 set (CMAKE_COMPILER_IS_GNUCXX FALSE CACHE BOOL "" FORCE)
 set (CMAKE_COMPILER_IS_GNUCC FALSE CACHE BOOL "" FORCE)

@@ -5,8 +5,8 @@
 #
 # See LICENCE.md for Copyright information
 
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/PolysquareCommon.cmake)
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_TESTS_DIRECTORY}/CMakeUnit.cmake)
+include (PolysquareCommon)
+include (CMakeUnit)
 
 polysquare_compiler_bootstrap ()
 polysquare_rules_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
