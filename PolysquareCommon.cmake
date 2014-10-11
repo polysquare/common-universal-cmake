@@ -74,31 +74,28 @@ macro (polysquare_cppcheck_bootstrap)
 
     if (POLYSQUARE_USE_CPPCHECK)
 
-        find_program (CPPCHECK_EXECUTABLE cppcheck)
-
-        if (NOT CPPCHECK_EXECUTABLE)
-
-            message (SEND_ERROR "cppcheck was not found")
-
-        endif (NOT CPPCHECK_EXECUTABLE)
-
-        mark_as_advanced (CPPCHECK_EXECUTABLE)
-
         include (CPPCheck)
 
         _validate_cppcheck (CONTINUE)
 
-        if (CONTINUE)
+        if (NOT CONTINUE)
 
-            set (_POLYSQUARE_BOOTSTRAPPED_CPPCHECK TRUE)
+            set (_POLYSQUARE_CPPCHECK_REASON "is unavailable")
+            set (POLYSQUARE_USE_CPPCHECK OFF)
 
-        endif (CONTINUE)
+        endif (NOT CONTINUE)
 
     else (POLYSQUARE_USE_CPPCHECK)
 
-        message (STATUS "CPPCheck static analysis has been disabled")
+        set (_POLYSQUARE_CPPCHECK_REASON "has been disabled")
 
     endif (POLYSQUARE_USE_CPPCHECK)
+
+    if (NOT POLYSQUARE_USE_CPPCHECK)
+
+        message (STATUS "cppcheck analysis ${_POLYSQUARE_CPPCHECK_REASON}")
+
+    endif (NOT POLYSQUARE_USE_CPPCHECK)
 
 endmacro (polysquare_cppcheck_bootstrap)
 
@@ -133,19 +130,29 @@ macro (polysquare_clang_tidy_bootstrap)
 
         if (CONTINUE)
 
-            set (_POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY ON)
             set (POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS)
             set (POLYSQUARE_CLANG_TIDY_DEFAULT_DISABLED_CHECKS
                  "llvm-*"
                  "google-*")
 
+        else (CONTINUE)
+
+            set (_POLYSQUARE_CLANG_TIDY_REASON "is unavailable")
+            set (POLYSQUARE_USE_CLANG_TIDY OFF)
+
         endif (CONTINUE)
 
     else (POLYSQUARE_USE_CLANG_TIDY)
 
-        message (STATUS "clang-tidy analysis has been disabled.")
+        set (_POLYSQUARE_CLANG_TIDY_REASON "has been disabled")
 
     endif (POLYSQUARE_USE_CLANG_TIDY)
+
+    if (NOT POLYSQUARE_USE_CLANG_TIDY)
+
+        message (STATUS "clang-tidy analysis ${_POLYSQUARE_CLANG_TIDY_REASON}.")
+
+    endif (NOT POLYSQUARE_USE_CLANG_TIDY)
 
 endmacro (polysquare_clang_tidy_bootstrap)
 
@@ -160,17 +167,25 @@ macro (polysquare_include_what_you_use_bootstrap)
 
         _validate_include_what_you_use (CONTINUE)
 
-        if (CONTINUE)
+        if (NOT CONTINUE)
 
-            set (_POLYSQUARE_BOOTSTRAPPED_IWYU ON)
+            set (_POLYSQUARE_IWYU_REASON "is unavailable")
+            set (POLYSQUARE_USE_IWYU OFF)
 
-        endif (CONTINUE)
+        endif (NOT CONTINUE)
 
     else (POLYSQUARE_USE_IWYU)
 
-        message (STATUS "include-what-you-use analysis has been disabled.")
+        set (_POLYSQUARE_IWYU_REASON "has been disabled")
 
     endif (POLYSQUARE_USE_IWYU)
+
+    if (NOT POLYSQUARE_USE_IWYU)
+
+        message (STATUS "include-what-you-use analysis"
+                        " ${_POLYSQUARE_IWYU_REASON}.")
+
+    endif (NOT POLYSQUARE_USE_IWYU)
 
 endmacro (polysquare_include_what_you_use_bootstrap)
 
@@ -181,9 +196,23 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
     if (POLYSQUARE_USE_VERAPP)
 
-        # Bootstrap vera++
-        find_package (VeraPP 1.2 REQUIRED)
         include (VeraPPUtilities)
+        _validate_verapp (CONTINUE 1.2)
+
+        if (NOT CONTINUE)
+
+            set (_POLYSQUARE_VERAPP_REASON "are unavailable")
+            set (POLYSQUARE_USE_VERAPP OFF)
+
+        endif (NOT CONTINUE)
+
+    else (POLYSQUARE_USE_VERAPP)
+
+        set (_POLYSQUARE_VERAPP_REASON "has been disabled")
+
+    endif (POLYSQUARE_USE_VERAPP)
+
+    if (POLYSQUARE_USE_VERAPP)
 
         set (_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY
              ${BINARY_DIR}/vera++)
@@ -231,11 +260,9 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
         add_dependencies (${_i_target} polysquare_verapp_copy_profiles)
 
-        set (_POLYSQUARE_BOOTSTRAPPED_VERAPP TRUE)
-
     else (POLYSQUARE_USE_VERAPP)
 
-        message (STATUS "Vera++ style checks have been disabled")
+        message (STATUS "vera++ style checks ${_POLYSQUARE_VERAPP_REASON}")
 
     endif (POLYSQUARE_USE_VERAPP)
 
@@ -364,7 +391,7 @@ function (polysquare_add_checks_to_target TARGET)
     _polysquare_forward_options (CHECKS ALL_CHECKS_FORWARD_OPTIONS
                                  OPTION_ARGS WARN_ONLY CHECK_GENERATED)
 
-    if (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
+    if (NOT CHECKS_NO_VERAPP AND POLYSQUARE_USE_VERAPP)
 
         set (_verapp_output_dir ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY})
         set (_verapp_profile ${_POLYSQUARE_VERAPP_PROFILE})
@@ -378,7 +405,7 @@ function (polysquare_add_checks_to_target TARGET)
                                                        ${_verapp_check_mode}
                                                        ${ALL_CHECKS_FORWARD_OPTIONS})
 
-    endif (NOT CHECKS_NO_VERAPP AND _POLYSQUARE_BOOTSTRAPPED_VERAPP)
+    endif (NOT CHECKS_NO_VERAPP AND POLYSQUARE_USE_VERAPP)
 
     _polysquare_forward_options (CHECKS ANALYSIS_FORWARD_OPTIONS
                                  SINGLEVAR_ARGS FORCE_LANGUAGE
@@ -386,7 +413,7 @@ function (polysquare_add_checks_to_target TARGET)
                                  DEFINES
                                  CPP_IDENTIFIERS)
 
-    if (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
+    if (NOT CHECKS_NO_CPPCHECK AND POLYSQUARE_USE_CPPCHECK)
 
         cppcheck_target_sources (${TARGET}
                                  INCLUDES
@@ -428,14 +455,14 @@ function (polysquare_add_checks_to_target TARGET)
 
         endif (NOT CHECKS_NO_UNUSED_CHECK)
 
-    endif (NOT CHECKS_NO_CPPCHECK AND _POLYSQUARE_BOOTSTRAPPED_CPPCHECK)
+    endif (NOT CHECKS_NO_CPPCHECK AND POLYSQUARE_USE_CPPCHECK)
 
     _polysquare_forward_options (CHECKS CLANG_CHECKS_FORWARD_OPTIONS
                                  MULTIVAR_ARGS
                                  INTERNAL_INCLUDE_DIRS
                                  EXTERNAL_INCLUDE_DIRS)
 
-    if (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
+    if (NOT CHECKS_NO_CLANG_TIDY AND POLYSQUARE_USE_CLANG_TIDY)
 
         set (DEFAULT_ENABLED_CHECKS
              ${POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS})
@@ -456,9 +483,9 @@ function (polysquare_add_checks_to_target TARGET)
                                          ${DEFAULT_DISABLED_CHECKS}
                                          ${CHECKS_CLANG_TIDY_DISABLE_CHECKS})
 
-    endif (NOT CHECKS_NO_CLANG_TIDY AND _POLYSQUARE_BOOTSTRAPPED_CLANG_TIDY)
+    endif (NOT CHECKS_NO_CLANG_TIDY AND POLYSQUARE_USE_CLANG_TIDY)
 
-    if (NOT CHECKS_NO_IWYU AND _POLYSQUARE_BOOTSTRAPPED_IWYU)
+    if (NOT CHECKS_NO_IWYU AND POLYSQUARE_USE_IWYU)
 
         iwyu_target_sources (${TARGET}
                              ${ALL_CHECKS_FORWARD_OPTIONS}
@@ -469,7 +496,7 @@ function (polysquare_add_checks_to_target TARGET)
                              EXTERNAL_INCLUDE_DIRS
                              ${CHECKS_EXTERNAL_INCLUDE_DIRS})
 
-    endif (NOT CHECKS_NO_IWYU AND _POLYSQUARE_BOOTSTRAPPED_IWYU)
+    endif (NOT CHECKS_NO_IWYU AND POLYSQUARE_USE_IWYU)
 
 endfunction (polysquare_add_checks_to_target)
 
