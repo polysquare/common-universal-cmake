@@ -89,6 +89,9 @@ set (POLYSQUARE_INITIAL_CACHE_CONTENTS
      "     CACHE STRING \"\" FORCE)\n"
      "set (CPPCHECK_VERSION\n"
      "     ${CPPCHECK_VERSION}\n"
+     "     CACHE STRING \"\" FORCE)\n"
+     "set (CMAKE_GENERATOR\n"
+     "     \"${CMAKE_GENERATOR}\"\n"
      "     CACHE STRING \"\" FORCE)\n")
 
 set (CMAKE_MODULE_PATH
@@ -114,6 +117,7 @@ add_cmake_test (CoverageFlagsSetForGCCAfterCoverageBootstrap)
 add_cmake_test (CoverageFlagsNotSetForClangAfterCoverageBootstrap)
 add_cmake_test (NoBuildTestsOption)
 add_cmake_test (NoWErrorOption)
+add_cmake_test (PrefixHeaderClearedOnTarget)
 add_cmake_test (VeraPPRulesSetAfterRulesBootstrap)
 add_cmake_test (TestLibrariesAvailableAfterGoogleTestBootstrap)
 add_cmake_test (CheckSourcesTargetCreated)
@@ -132,6 +136,10 @@ add_cmake_build_test (UnityBuildTargetsDependOnUnityDependencies
 add_cmake_build_test (UnityBuildTargetsInheritDependencies
                       UnityBuildTargetsInheritDependenciesVerify
                       TARGET all_unity)
+add_cmake_build_test (UseFilesInBuildDirectoryInPCHFile
+                      UseFilesInBuildDirectoryInPCHFileVerify)
+add_cmake_build_test (SkipGeneratedFilesInPCHFile
+                      SkipGeneratedFilesInPCHFileVerify)
 add_cmake_build_test (DependenciesLinkedToTarget
                       DependenciesLinkedToTargetVerify)
 add_cmake_build_test (GenerateCompilationCommandsDatabaseAfterBootstrap
