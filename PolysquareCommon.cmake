@@ -613,13 +613,23 @@ function (polysquare_add_checked_sources TARGET)
     add_custom_target (${TARGET}_scannable
                        SOURCES ${SOURCES_SOURCES})
 
+    # Recursively invoke the build system to build the ${TARGET}_scannable
+    # target. The second command will not be run if ${SOURCES_SCANNED_STAMP}
+    # exists and is up to date.
+    #
+    # This is probably a horrible hack, however the target depdencies
+    # of this custom command are unconditionally run otherwise.
     add_custom_command (OUTPUT ${SOURCES_SCANNED_STAMP}
                         COMMAND
                         ${CMAKE_COMMAND} -E touch ${SOURCES_SCANNED_STAMP}
+                        COMMAND
+                        ${CMAKE_COMMAND}
+                        --build ${CMAKE_BINARY_DIR}
+                        --target ${TARGET}_scannable
                         DEPENDS
-                        ${TARGET}_scannable
                         ${SOURCES_SOURCES}
-                        COMMENT "Checking source group: ${TARGET}")
+                        COMMENT "Checking source group: ${TARGET}"
+                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
     add_custom_target (${TARGET} ALL
                        DEPENDS ${SOURCES_SCANNED_STAMP})
