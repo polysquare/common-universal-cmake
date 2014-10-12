@@ -687,6 +687,11 @@ function (polysquare_accelerate_target_compilation TARGET)
                                COTIRE_ENABLE_PRECOMPILED_HEADER
                                ${PRECOMPILED_HEADERS})
 
+        # Clear COTIRE_PREFIX_HEADER_IGNORE_PATH
+        set_target_properties (${TARGET} PROPERTIES
+                               COTIRE_PREFIX_HEADER_IGNORE_PATH
+                               "")
+
         cotire (${TARGET})
 
         # Add dependencies to unity target
