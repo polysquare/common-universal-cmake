@@ -8,6 +8,9 @@
 
 include (CMakeParseArguments)
 
+# This file's directory
+set (POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+
 function (polysquare_compiler_bootstrap)
 
     option (POLYSQUARE_USE_STRICT_COMPILER "Make compiler warnings errors" ON)
@@ -36,7 +39,17 @@ function (polysquare_compiler_bootstrap)
 
 endfunction (polysquare_compiler_bootstrap)
 
-macro (polysquare_cotire_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
+macro (polysquare_sanitizers_bootstrap)
+
+    set (CMAKE_MODULE_PATH
+         ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/sanitize-target-cmake
+         ${CMAKE_MODULE_PATH})
+
+    include (SanitizeTarget)
+
+endmacro (polysquare_sanitizers_bootstrap)
+
+macro (polysquare_acceleration_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
     option (POLYSQUARE_USE_PRECOMPILED_HEADERS
             "Generate precompiled headers for targets where appropriate" ON)
@@ -47,15 +60,15 @@ macro (polysquare_cotire_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
         POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
 
         set (CMAKE_MODULE_PATH
-             ${COMMON_UNIVERSAL_CMAKE_DIR}/cotire/CMake
+             ${COMMON_UNIVERSAL_CMAKE_DIR}/accelerate-target-cmake
              ${CMAKE_MODULE_PATH})
 
-        include (cotire)
+        include (AccelerateTarget)
 
     endif (POLYSQUARE_USE_PRECOMPILED_HEADERS OR
            POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
 
-endmacro (polysquare_cotire_bootstrap)
+endmacro (polysquare_acceleration_bootstrap)
 
 macro (polysquare_coverage_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
@@ -341,6 +354,17 @@ set (_ALL_POLYSQUARE_CHECKS_MULTIVAR_ARGS
 set (_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS
      NO_UNITY_BUILD
      NO_PRECOMPILED_HEADERS)
+set (_ALL_POLYSQUARE_ACCELERATION_MULTIVAR_ARGS
+     DEPENDS)
+
+set (_ALL_POLYSQUARE_SANITIZATION_OPTION_ARGS
+     ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS}
+     NO_ASAN
+     NO_MSAN
+     NO_TSAN
+     NO_UBSAN)
+set (_ALL_POLYSQUARE_SANITIZATION_MULTIVAR_ARGS
+     ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS})
 
 set (_ALL_POLYSQUARE_SOURCES_OPTION_ARGS
      ${_ALL_POLYSQUARE_CHECKS_OPTION_ARGS})
@@ -356,14 +380,15 @@ set (_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS
 
 set (_ALL_POLYSQUARE_BINARY_OPTION_ARGS
      ${_ALL_POLYSQUARE_SOURCES_OPTION_ARGS}
-     ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS})
+     ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS}
+     ${_ALL_POLYSQUARE_SANITIZATION_OPTION_ARGS})
 set (_ALL_POLYSQUARE_BINARY_SINGLEVAR_ARGS
      ${_ALL_POLYSQUARE_SOURCES_SINGLEVAR_ARGS}
      EXPORT_HEADER_DIRECTORY)
 set (_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS
      ${_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS}
-     LIBRARIES
-     DEPENDS)
+     ${_ALL_POLYSQUARE_ACCELERATION_MULTIVAR_ARGS}
+     LIBRARIES)
 
 function (polysquare_add_checks_to_target TARGET)
 
@@ -457,6 +482,13 @@ function (polysquare_add_checks_to_target TARGET)
 
     endif (NOT CHECKS_NO_CPPCHECK AND POLYSQUARE_USE_CPPCHECK)
 
+    set (CHECKS_CLANG_TIDY_ENABLE_CHECKS
+         ${POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS}
+         ${CHECKS_CLANG_TIDY_ENABLE_CHECKS})
+    set (CHECKS_CLANG_TIDY_DISABLE_CHECKS
+         ${POLYSQUARE_CLANG_TIDY_DEFAULT_DISABLED_CHECKS}
+         ${CHECKS_CLANG_TIDY_DISABLE_CHECKS})
+
     _polysquare_forward_options (CHECKS CLANG_CHECKS_FORWARD_OPTIONS
                                  MULTIVAR_ARGS
                                  INTERNAL_INCLUDE_DIRS
@@ -464,23 +496,13 @@ function (polysquare_add_checks_to_target TARGET)
 
     if (NOT CHECKS_NO_CLANG_TIDY AND POLYSQUARE_USE_CLANG_TIDY)
 
-        set (DEFAULT_ENABLED_CHECKS
-             ${POLYSQUARE_CLANG_TIDY_DEFAULT_ENABLED_CHECKS})
-        set (DEFAULT_DISABLED_CHECKS
-             ${POLYSQUARE_CLANG_TIDY_DEFAULT_DISABLED_CHECKS})
         clang_tidy_check_target_sources (${TARGET}
                                          ${ALL_CHECKS_FORWARD_OPTIONS}
-                                         ${CLANG_CHECKS_FORWARD_OPTIONS}
                                          ${ANALYSIS_FORWARD_OPTIONS}
-                                         INTERNAL_INCLUDE_DIRS
-                                         ${CHECKS_INTERNAL_INCLUDE_DIRS}
-                                         EXTERNAL_INCLUDE_DIRS
-                                         ${CHECKS_EXTERNAL_INCLUDE_DIRS}
+                                         ${CLANG_CHECKS_FORWARD_OPTIONS}
                                          ENABLE_CHECKS
-                                         ${DEFAULT_ENABLED_CHECKS}
                                          ${CHECKS_CLANG_TIDY_ENABLE_CHECKS}
                                          DISABLE_CHECKS
-                                         ${DEFAULT_DISABLED_CHECKS}
                                          ${CHECKS_CLANG_TIDY_DISABLE_CHECKS})
 
     endif (NOT CHECKS_NO_CLANG_TIDY AND POLYSQUARE_USE_CLANG_TIDY)
@@ -490,11 +512,7 @@ function (polysquare_add_checks_to_target TARGET)
         iwyu_target_sources (${TARGET}
                              ${ALL_CHECKS_FORWARD_OPTIONS}
                              ${CLANG_CHECKS_FORWARD_OPTIONS}
-                             ${ANALYSIS_FORWARD_OPTIONS}
-                             INTERNAL_INCLUDE_DIRS
-                             ${CHECKS_INTERNAL_INCLUDE_DIRS}
-                             EXTERNAL_INCLUDE_DIRS
-                             ${CHECKS_EXTERNAL_INCLUDE_DIRS})
+                             ${ANALYSIS_FORWARD_OPTIONS})
 
     endif (NOT CHECKS_NO_IWYU AND POLYSQUARE_USE_IWYU)
 
@@ -650,12 +668,18 @@ endfunction (polysquare_add_checked_sources)
 
 function (polysquare_accelerate_target_compilation TARGET)
 
+    if (NOT COMMAND psq_accelerate_target)
+
+        return ()
+
+    endif (NOT COMMAND psq_accelerate_target)
+
     set (ACCELERATE_OPTION_ARGS
          ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS})
     set (ACCELERATE_SINGLEVAR_ARGS
          "")
     set (ACCELERATE_MULTIVAR_ARGS
-         ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
+         ${_ALL_POLYSQUARE_ACCELERATION_MULTIVAR_ARGS})
 
     cmake_parse_arguments (ACCELERATION
                            "${ACCELERATE_OPTION_ARGS}"
@@ -663,97 +687,76 @@ function (polysquare_accelerate_target_compilation TARGET)
                            "${ACCELERATE_MULTIVAR_ARGS}"
                            ${ARGN})
 
-    if (ACCELERATION_NO_UNITY_BUILD OR
-        NOT POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
+    # Set ACCELERATION_NO_UNITY_BUILD and ACCELERATION_NO_PRECOMPILED_HEADERS
+    # from POLYSQUARE_GENERATE_* options
+    if (NOT POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
 
-        set (UNITY_BUILDS OFF)
+        set (ACCELERATION_NO_UNITY_BUILD ON)
 
-    else (ACCELERATION_NO_UNITY_BUILD OR
-          NOT POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
+    endif (NOT POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
 
-        set (UNITY_BUILDS ON)
+    if (NOT POLYSQUARE_USE_PRECOMPILED_HEADERS)
 
-    endif (ACCELERATION_NO_UNITY_BUILD OR
-           NOT POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
+        set (ACCELERATION_NO_PRECOMPILED_HEADERS ON)
 
-    if (ACCELERATION_NO_PRECOMPILED_HEADERS OR
-        NOT POLYSQUARE_USE_PRECOMPILED_HEADERS)
+    endif (NOT POLYSQUARE_USE_PRECOMPILED_HEADERS)
 
-        set (PRECOMPILED_HEADERS OFF)
-
-    else (ACCELERATION_NO_PRECOMPILED_HEADERS OR
-          NOT POLYSQUARE_USE_PRECOMPILED_HEADERS)
-
-        set (PRECOMPILED_HEADERS ON)
-
-    endif (ACCELERATION_NO_PRECOMPILED_HEADERS OR
-           NOT POLYSQUARE_USE_PRECOMPILED_HEADERS)
-
-    if (COMMAND cotire)
-
-        set_target_properties (${TARGET} PROPERTIES
-                               COTIRE_ADD_UNITY_BUILD
-                               ${UNITY_BUILDS}
-                               COTIRE_ENABLE_PRECOMPILED_HEADER
-                               ${PRECOMPILED_HEADERS})
-
-        # Clear COTIRE_PREFIX_HEADER_IGNORE_PATH
-        set_target_properties (${TARGET} PROPERTIES
-                               COTIRE_PREFIX_HEADER_IGNORE_PATH
-                               "")
-
-        cotire (${TARGET})
-
-        # Add dependencies to unity target
-        if (UNITY_BUILDS)
-
-            set (UNITY_TARGET_NAME ${TARGET}_unity)
-
-            if (ACCELERATION_DEPENDS)
-
-                add_dependencies (${UNITY_TARGET_NAME}
-                                  ${ACCELERATION_DEPENDS})
-
-            endif (ACCELERATION_DEPENDS)
-
-            if (ACCELERATION_LIBRARIES)
-
-                foreach (LIBRARY ${ACCELERATION_LIBRARIES})
-
-                    # If LIBRARY is a target then it might also have a
-                    # corresponding _unity target, check for that too
-                    if (TARGET ${LIBRARY})
-
-                        set (UNITY_TARGET ${LIBRARY}_unity)
-
-                        if (TARGET ${UNITY_TARGET})
-
-                            target_link_libraries (${UNITY_TARGET_NAME}
-                                                   ${UNITY_TARGET})
-
-                        else (TARGET ${UNITY_TARGET})
-
-                            target_link_libraries (${UNITY_TARGET_NAME}
-                                                   ${LIBRARY})
-
-                        endif (TARGET ${UNITY_TARGET})
-
-                    else (TARGET ${LIBRARY})
-
-                        target_link_libraries (${UNITY_TARGET_NAME}
-                                               ${LIBRARY})
-
-                    endif (TARGET ${LIBRARY})
-
-                endforeach ()
-
-            endif (ACCELERATION_LIBRARIES)
-
-        endif (UNITY_BUILDS)
-
-    endif (COMMAND cotire)
+    _polysquare_forward_options (ACCELERATION ACCELERATE_TARGET_FORWARD_OPTS
+                                 OPTION_ARGS
+                                 ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS}
+                                 MULTIVAR_ARGS DEPENDS)
+    psq_accelerate_target (${TARGET}
+                           ${ACCELERATE_TARGET_FORWARD_OPTS})
 
 endfunction (polysquare_accelerate_target_compilation)
+
+function (polysquare_add_sanitization_to_target TARGET)
+
+    if (NOT COMMAND sanitizer_add_sanitization_to_target)
+
+        return ()
+
+    endif (NOT COMMAND sanitizer_add_sanitization_to_target)
+
+    set (SANITIZATION_OPTION_ARGS
+         ${_ALL_POLYSQUARE_SANITIZATION_OPTION_ARGS})
+    set (SANITIZATION_MULTIVAR_ARGS
+         DEPENDS)
+
+    cmake_parse_arguments (SANITIZATION
+                           "${SANITIZATION_OPTION_ARGS}"
+                           ""
+                           "${SANITIZATION_MULTIVAR_ARGS}"
+                           ${ARGN})
+
+    _polysquare_forward_options (SANITIZATION SANITIZER_FORWARD_OPTIONS
+                                 OPTION_ARGS ${SANITIZATION_OPTION_ARGS}
+                                 MULTIVAR_ARGS ${SANITIZATION_MULTIVAR_ARGS})
+
+    # Accelerate the sanitized target too
+    sanitizer_add_sanitization_to_target (${TARGET}
+                                          ${SANITIZER_FORWARD_OPTIONS})
+    _polysquare_forward_options (TARGET ACCELERATE_FWD_OPTS
+                                 OPTION_ARGS
+                                 ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS}
+                                 MULTIVAR_ARGS
+                                 ${_ALL_POLYSQUARE_ACCELERATION_MULTIVAR_ARGS})
+
+    # Search for any targets ending in asan, msan, tsan and ubsan
+    set (SANITIZERS_SUFFIXES asan msan tsan ubsan)
+
+    foreach (SUFFIX ${SANITIZERS_SUFFIXES})
+
+        if (TARGET ${TARGET}_${SUFFIX})
+
+            polysquare_accelerate_target_compilation (${TARGET}_${SUFFIX}
+                                                      ${ACCELERATE_FWD_OPTS})
+
+        endif (TARGET ${TARGET}_${SUFFIX})
+
+    endforeach ()
+
+endfunction (polysquare_add_sanitization_to_target)
 
 function (_polysquare_add_target_internal TARGET)
 
@@ -816,6 +819,14 @@ function (_polysquare_add_target_internal TARGET)
 
     _clear_variable_names_if_false (TARGET
                                     ${TARGET_OPTION_ARGS})
+
+    _polysquare_forward_options (TARGET SANITIZATION_FORWARD_OPTIONS
+                                 OPTION_ARGS
+                                 ${_ALL_POLYSQUARE_SANITIZATION_OPTION_ARGS}
+                                 MULTIVAR_ARGS
+                                 ${_ALL_POLYSQUARE_SANITIZATION_MULTIVAR_ARGS})
+    polysquare_add_sanitization_to_target (${TARGET}
+                                           ${SANITIZATION_FORWARD_OPTIONS})
 
     _polysquare_forward_options (TARGET CHECKS_FORWARD_OPTIONS
                                  OPTION_ARGS

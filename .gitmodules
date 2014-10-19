@@ -13,10 +13,6 @@
 [submodule "cmake-unit"]
 	path = cmake-unit
 	url = git://github.com/polysquare/cmake-unit
-[submodule "cotire"]
-	path = cotire
-	url = git://github.com/smspillaz/cotire
-	branch = fix_33
 [submodule "imported-project-utils"]
 	path = imported-project-utils
 	url = git://github.com/polysquare/cmake-imported-project-utils
@@ -26,3 +22,9 @@
 [submodule "include-what-you-use-target-cmake"]
 	path = include-what-you-use-target-cmake
 	url = git://github.com/polysquare/include-what-you-use-target-cmake
+[submodule "accelerate-target-cmake"]
+	path = accelerate-target-cmake
+	url = git://github.com/polysquare/accelerate-target-cmake
+[submodule "sanitize-target-cmake"]
+	path = sanitize-target-cmake
+	url = git://github.com/polysquare/sanitize-target-cmake

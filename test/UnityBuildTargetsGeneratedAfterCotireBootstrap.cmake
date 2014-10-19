@@ -1,5 +1,5 @@
 # /test/UnityBuildTargetsGeneratedAfterCotireBootstrap.cmake
-# Verifies that after calling polysquare_bootstrap_cotire
+# Verifies that after calling polysquare_bootstrap_acceleration
 # _unity targets are generated for each new polysquare target
 # added.
 #
@@ -9,7 +9,7 @@ include (PolysquareCommon)
 include (CMakeUnit)
 
 polysquare_compiler_bootstrap ()
-polysquare_cotire_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_acceleration_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
 
 set (SOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Source.cpp)
 
