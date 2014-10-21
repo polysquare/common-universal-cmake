@@ -40,14 +40,31 @@ get_filename_component (POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY
                         ${POLYSQUARE_RELATIVE_CMAKE_DIRECTORY}
                         ABSOLUTE)
 
+set (CMAKE_MODULE_PATH
+     ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
+     ${CMAKE_MODULE_PATH})
+
 # We build a copy of Google Test locally and then specify its location in
 # the cache. This allows the tests to immediately use that copy as opposed
 # to having to download it all the time.
-include (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/PolysquareCommon.cmake)
+include (PolysquareCommon)
 
 polysquare_gmock_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+
+# Check for the presence of Vera++, CPPCheck, include-what-you-use
+# and clang-tidy
 polysquare_rules_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
                             ${CMAKE_CURRENT_BINARY_DIR})
+
+# Check for the presence of AddressSanitizer, MemorySanitizer, ThreadSanitizer,
+# UndefinedBehaviourSanitizer. If any of these get set to OFF, the sanitizer
+# is not available.
+set (SANITIZERS_USE_ASAN ON CACHE FORCE "")
+set (SANITIZERS_USE_MSAN ON CACHE FORCE "")
+set (SANITIZERS_USE_TSAN ON CACHE FORCE "")
+set (SANITIZERS_USE_UBSAN ON CACHE FORCE "")
+
+polysquare_sanitizers_bootstrap ()
 
 set (CMAKE_UNIT_DIRECTORY
      ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/cmake-unit)
@@ -81,6 +98,12 @@ set (POLYSQUARE_INITIAL_CACHE_CONTENTS
      "set (GMOCK_EXTERNAL_SET_MAIN_LIBRARY\n"
      "     ${REAL_GMOCK_MAIN_LIBRARY}\n"
      "     CACHE STRING \"\" FORCE)\n"
+     "set (CMAKE_CXX_COMPILER\n"
+     "     ${CMAKE_CXX_COMPILER}\n"
+     "      CACHE STRING \"\" FORCE)\n"
+     "set (CMAKE_C_COMPILER\n"
+     "     ${CMAKE_C_COMPILER}\n"
+     "      CACHE STRING \"\" FORCE)\n"
      "set (CMAKE_CXX_FLAGS\n"
      "     ${CMAKE_CXX_FLAGS}\n"
      "     CACHE STRING \"\" FORCE)\n"
@@ -197,3 +220,66 @@ add_cmake_test (MatcherTargetHasExportedDetails)
 add_cmake_test (AddMockTarget)
 add_cmake_test (MockTargetHasExportedDetails)
 add_cmake_test (GlobalUnusedFunctionCheckByDefault)
+
+# Only add these tests if we have AddressSanitizer support
+if (SANITIZERS_USE_ASAN)
+
+    # Many of these tests are applicable to ThreadSanitizer, MemorySanitizer
+    # and UndefinedBehaviourSanitizer. Since AddressSanitizer is the most
+    # widely available sanitizer, we'll add these tests on AddressSanitizer
+    # only to prevent duplication
+    add_cmake_test (NoASanFlagDisablesCreationOfInstrumentedBinary)
+    add_cmake_test (NoCreateASanInstrumentedBinaryOnUserDisable)
+    add_cmake_test (CreateUnityASanInstrumentedBinary)
+    add_cmake_test (CreateASanInstrumentedBinaryWithPCH)
+    add_cmake_build_test (CreateASanInstrumentedBinary
+                          CreateASanInstrumentedBinaryVerify)
+    add_cmake_build_test (CreateASanInstrumentedLibrary
+                          CreateASanInstrumentedLibraryVerify)
+    add_cmake_build_test (ASanInstrumentedBinaryLinksToInstrumentedLibrary
+                          ASanInstrumentedBinaryLinksToInstrumentedLibraryVerify)
+
+endif (SANITIZERS_USE_ASAN)
+
+if (SANITIZERS_USE_MSAN)
+
+    add_cmake_build_test (CreateMSanInstrumentedBinary
+                          CreateMSanInstrumentedBinaryVerify)
+
+    if (SANITIZERS_HAVE_SANITIZE_MEMORY_TRACK_ORIGINS)
+
+        add_cmake_build_test (MSanInstrumentedBinaryTracksOrigins
+                              MSanInstrumentedBinaryTracksOriginsVerify)
+
+    endif (SANITIZERS_HAVE_SANITIZE_MEMORY_TRACK_ORIGINS)
+
+endif (SANITIZERS_USE_MSAN)
+
+if (SANITIZERS_USE_UBSAN)
+
+    add_cmake_build_test (CreateUBSanInstrumentedBinary
+                          CreateUBSanInstrumentedBinaryVerify)
+
+    if (SANITIZERS_HAVE_UBSAN_UNSIGNED_INTEGER_OVERFLOW)
+
+        add_cmake_build_test (UBSanInstrumentedBinaryUnsignedIntOverflow
+                              UBSanInstrumentedBinaryUnsignedIntOverflowVerify)
+
+    endif (SANITIZERS_HAVE_UBSAN_UNSIGNED_INTEGER_OVERFLOW)
+
+    if (SANITIZERS_HAVE_UBSAN_NO_SANITIZE_RECOVER)
+
+        add_cmake_build_test (UBSanInstrumentedBinaryNoRecover
+                              UBSanInstrumentedBinaryNoRecoverVerify)
+
+    endif (SANITIZERS_HAVE_UBSAN_NO_SANITIZE_RECOVER)
+
+
+endif (SANITIZERS_USE_UBSAN)
+
+if (SANITIZERS_USE_TSAN)
+
+    add_cmake_build_test (CreateTSanInstrumentedBinary
+                          CreateTSanInstrumentedBinaryVerify)
+
+endif (SANITIZERS_USE_TSAN)
