@@ -76,63 +76,34 @@ _get_real_library_path (${GMOCK_MAIN_LIBRARY} REAL_GMOCK_MAIN_LIBRARY)
 
 # Put our directories into the cache as well as the parameters for the
 # Google Test distribution.
-set (POLYSQUARE_INITIAL_CACHE_CONTENTS
-     "set (POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY\n"
-     "     ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (GTEST_EXTERNAL_SET_INCLUDE_DIR\n"
-     "     ${GTEST_INCLUDE_DIR}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (GMOCK_EXTERNAL_SET_INCLUDE_DIR\n"
-     "     ${GMOCK_INCLUDE_DIR}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (GTEST_EXTERNAL_SET_LIBRARY\n"
-     "     ${REAL_GTEST_LIBRARY}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (GMOCK_EXTERNAL_SET_LIBRARY\n"
-     "     ${REAL_GMOCK_LIBRARY}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (GTEST_EXTERNAL_SET_MAIN_LIBRARY\n"
-     "     ${REAL_GTEST_MAIN_LIBRARY}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (GMOCK_EXTERNAL_SET_MAIN_LIBRARY\n"
-     "     ${REAL_GMOCK_MAIN_LIBRARY}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (CMAKE_CXX_COMPILER\n"
-     "     ${CMAKE_CXX_COMPILER}\n"
-     "      CACHE STRING \"\" FORCE)\n"
-     "set (CMAKE_C_COMPILER\n"
-     "     ${CMAKE_C_COMPILER}\n"
-     "      CACHE STRING \"\" FORCE)\n"
-     "set (CMAKE_CXX_FLAGS\n"
-     "     ${CMAKE_CXX_FLAGS}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (CMAKE_C_FLAGS\n"
-     "     ${CMAKE_C_FLAGS}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (CPPCHECK_VERSION\n"
-     "     ${CPPCHECK_VERSION}\n"
-     "     CACHE STRING \"\" FORCE)\n"
-     "set (CMAKE_GENERATOR\n"
-     "     \"${CMAKE_GENERATOR}\"\n"
-     "     CACHE STRING \"\" FORCE)\n")
+set (GTEST_EXTERNAL_SET_INCLUDE_DIR ${GTEST_INCLUDE_DIR})
+set (GMOCK_EXTERNAL_SET_INCLUDE_DIR ${GMOCK_INCLUDE_DIR})
+set (GTEST_EXTERNAL_SET_LIBRARY ${REAL_GTEST_LIBRARY})
+set (GMOCK_EXTERNAL_SET_LIBRARY ${REAL_GMOCK_LIBRARY})
+set (GTEST_EXTERNAL_SET_MAIN_LIBRARY ${REAL_GTEST_MAIN_LIBRARY})
+set (GMOCK_EXTERNAL_SET_MAIN_LIBRARY ${REAL_GMOCK_MAIN_LIBRARY})
 
 set (CMAKE_MODULE_PATH
      ${CMAKE_UNIT_DIRECTORY}
      ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
      ${CMAKE_MODULE_PATH})
 
-foreach (PATH ${CMAKE_MODULE_PATH})
-     set (POLYSQUARE_INITIAL_CACHE_CONTENTS
-          "${POLYSQUARE_INITIAL_CACHE_CONTENTS}\n"
-          "set (CMAKE_MODULE_PATH ${PATH} \${CMAKE_MODULE_PATH}\n"
-          "     CACHE STRING \"\" FORCE)\n")
-endforeach ()
-
 include (CMakeUnitRunner)
 
-bootstrap_cmake_unit (INITIAL_CACHE_CONTENTS
-                      POLYSQUARE_INITIAL_CACHE_CONTENTS)
+bootstrap_cmake_unit (VARIABLES CMAKE_MODULE_PATH
+                                POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY
+                                GTEST_EXTERNAL_SET_INCLUDE_DIR
+                                GMOCK_EXTERNAL_SET_INCLUDE_DIR
+                                GTEST_EXTERNAL_SET_LIBRARY
+                                GMOCK_EXTERNAL_SET_LIBRARY
+                                GTEST_EXTERNAL_SET_MAIN_LIBRARY
+                                GMOCK_EXTERNAL_SET_MAIN_LIBRARY
+                                CMAKE_CXX_COMPILER
+                                CMAKE_C_COMPILER
+                                CMAKE_CXX_FLAGS
+                                CMAKE_C_FLAGS
+                                CPPCHECK_VERSION
+                                CMAKE_GENERATOR)
 
 add_cmake_test (AddPolysquareCommonAsSubdirectory)
 add_cmake_test (CompilerFlagsSetAfterCompilerBootstrap)
