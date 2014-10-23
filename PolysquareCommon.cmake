@@ -313,14 +313,14 @@ function (polysquare_rules_complete_scanning)
 
 endfunction (polysquare_rules_complete_scanning)
 
-macro (polysquare_gmock_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
+macro (polysquare_gmock_bootstrap)
 
     option (POLYSQUARE_BUILD_TESTS "Build tests" ON)
 
     if (POLYSQUARE_BUILD_TESTS)
 
         set (GMOCK_CMAKE_DIRECTORY
-             ${COMMON_UNIVERSAL_CMAKE_DIR}/gmock-cmake)
+             ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/gmock-cmake)
 
         set (CMAKE_MODULE_PATH
              ${GMOCK_CMAKE_DIRECTORY}

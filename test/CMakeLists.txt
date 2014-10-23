@@ -49,7 +49,7 @@ set (CMAKE_MODULE_PATH
 # to having to download it all the time.
 include (PolysquareCommon)
 
-polysquare_gmock_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_gmock_bootstrap ()
 
 # Check for the presence of Vera++, CPPCheck, include-what-you-use
 # and clang-tidy
