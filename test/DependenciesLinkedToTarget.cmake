@@ -8,7 +8,7 @@ include (PolysquareCommon)
 include (CMakeUnit)
 
 polysquare_compiler_bootstrap ()
-polysquare_acceleration_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_acceleration_bootstrap ()
 
 # Set up a custom target to touch output
 find_program (CMAKE_EXECUTABLE cmake)

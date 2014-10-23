@@ -7,8 +7,7 @@
 include (PolysquareCommon)
 include (CMakeUnit)
 
-polysquare_rules_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
-                            ${CMAKE_CURRENT_BINARY_DIR}/polysquare)
+polysquare_rules_bootstrap ()
 
 set (SOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Source.cpp)
 set (HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Header.h)

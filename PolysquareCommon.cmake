@@ -49,7 +49,7 @@ macro (polysquare_sanitizers_bootstrap)
 
 endmacro (polysquare_sanitizers_bootstrap)
 
-macro (polysquare_acceleration_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
+macro (polysquare_acceleration_bootstrap)
 
     option (POLYSQUARE_USE_PRECOMPILED_HEADERS
             "Generate precompiled headers for targets where appropriate" ON)
@@ -60,7 +60,7 @@ macro (polysquare_acceleration_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
         POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
 
         set (CMAKE_MODULE_PATH
-             ${COMMON_UNIVERSAL_CMAKE_DIR}/accelerate-target-cmake
+             ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/accelerate-target-cmake
              ${CMAKE_MODULE_PATH})
 
         include (AccelerateTarget)
@@ -70,10 +70,10 @@ macro (polysquare_acceleration_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
 
 endmacro (polysquare_acceleration_bootstrap)
 
-macro (polysquare_coverage_bootstrap COMMON_UNIVERSAL_CMAKE_DIR)
+macro (polysquare_coverage_bootstrap)
 
     set (CMAKE_MODULE_PATH
-         ${COMMON_UNIVERSAL_CMAKE_DIR}/gcov-cmake
+         ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/gcov-cmake
          ${CMAKE_MODULE_PATH})
 
     include (GCovUtilities)
@@ -172,7 +172,8 @@ endmacro (polysquare_clang_tidy_bootstrap)
 macro (polysquare_include_what_you_use_bootstrap)
 
     option (POLYSQUARE_USE_IWYU
-            "Perform checks to ensure that there are no unecessary #includes" ON)
+            "Perform checks to ensure that there are no unecessary #includes"
+            ON)
 
     if (POLYSQUARE_USE_IWYU)
 
@@ -202,7 +203,7 @@ macro (polysquare_include_what_you_use_bootstrap)
 
 endmacro (polysquare_include_what_you_use_bootstrap)
 
-macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
+macro (polysquare_vera_bootstrap)
 
     option (POLYSQUARE_USE_VERAPP
             "Check source files for style compliance with vera++" ON)
@@ -221,18 +222,18 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
     else (POLYSQUARE_USE_VERAPP)
 
-        set (_POLYSQUARE_VERAPP_REASON "has been disabled")
+        set (_POLYSQUARE_VERAPP_REASON "have been disabled")
 
     endif (POLYSQUARE_USE_VERAPP)
 
     if (POLYSQUARE_USE_VERAPP)
 
         set (_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY
-             ${BINARY_DIR}/vera++)
+             ${CMAKE_CURRENT_BINARY_DIR}/vera++)
         set (_POLYSQUARE_VERAPP_SCRIPTS_OUTPUT_DIRECTORY
              ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY}/scripts)
         set (_POLYSQUARE_VERAPP_SOURCE_DIRECTORY
-             ${COMMON_UNIVERSAL_CMAKE_DIR}/vera++)
+             ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/vera++)
         set (_POLYSQUARE_VERAPP_SCRIPTS_SOURCE_DIRECTORY
              ${_POLYSQUARE_VERAPP_SOURCE_DIRECTORY}/scripts)
         set (_POLYSQUARE_VERAPP_PROFILE polysquare)
@@ -281,16 +282,16 @@ macro (polysquare_vera_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
 
 endmacro (polysquare_vera_bootstrap)
 
-macro (polysquare_rules_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
+macro (polysquare_rules_bootstrap)
 
     set (VERAPP_CMAKE_DIRECTORY
-         ${COMMON_UNIVERSAL_CMAKE_DIR}/veracpp-cmake)
+         ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/veracpp-cmake)
     set (CPPCHECK_CMAKE_DIRECTORY
-         ${COMMON_UNIVERSAL_CMAKE_DIR}/cppcheck-target-cmake)
+         ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/cppcheck-target-cmake)
     set (CLANG_TIDY_CMAKE_DIRECTORY
-         ${COMMON_UNIVERSAL_CMAKE_DIR}/clang-tidy-target-cmake)
+         ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/clang-tidy-target-cmake)
     set (IWYU_CMAKE_DIRECTORY
-         ${COMMON_UNIVERSAL_CMAKE_DIR}/include-what-you-use-target-cmake)
+         ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/include-what-you-use-target-cmake)
 
     set (CMAKE_MODULE_PATH
          ${VERAPP_CMAKE_DIRECTORY}
@@ -299,7 +300,7 @@ macro (polysquare_rules_bootstrap COMMON_UNIVERSAL_CMAKE_DIR BINARY_DIR)
          ${IWYU_CMAKE_DIRECTORY}
          ${CMAKE_MODULE_PATH})
 
-    polysquare_vera_bootstrap (${COMMON_UNIVERSAL_CMAKE_DIR} ${BINARY_DIR})
+    polysquare_vera_bootstrap ()
     polysquare_cppcheck_bootstrap ()
     polysquare_clang_tidy_bootstrap ()
     polysquare_include_what_you_use_bootstrap ()
