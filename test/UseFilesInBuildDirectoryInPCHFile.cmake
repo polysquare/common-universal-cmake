@@ -8,7 +8,7 @@ include (PolysquareCommon)
 include (CMakeUnit)
 
 polysquare_compiler_bootstrap ()
-polysquare_acceleration_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_acceleration_bootstrap ()
 
 set (COTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES 1 CACHE BOOL "" FORCE)
 

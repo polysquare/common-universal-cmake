@@ -13,7 +13,7 @@ set (COTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES 1 CACHE BOOL "" FORCE)
 
 polysquare_compiler_bootstrap ()
 polysquare_sanitizers_bootstrap ()
-polysquare_acceleration_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_acceleration_bootstrap ()
 
 set (SOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/Source.cpp)
 set (SOURCE_FILE_CONTENTS

@@ -9,8 +9,7 @@ include (PolysquareCommon)
 include (CMakeUnit)
 
 polysquare_compiler_bootstrap ()
-polysquare_rules_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
-                            ${CMAKE_CURRENT_BINARY_DIR}/polysquare)
+polysquare_rules_bootstrap ()
 
 set (NATIVE_SOURCE_FILE_CONTENTS "/* Copyright */\n")
 set (NATIVE_SOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/Source.cpp)

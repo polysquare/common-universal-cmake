@@ -8,8 +8,7 @@
 include (PolysquareCommon)
 include (CMakeUnit)
 
-polysquare_rules_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
-                            ${CMAKE_CURRENT_BINARY_DIR}/scripts)
+polysquare_rules_bootstrap ()
 
 add_custom_target (force_import_rules ALL
                    DEPENDS
