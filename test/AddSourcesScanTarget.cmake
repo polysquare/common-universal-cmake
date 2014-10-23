@@ -9,7 +9,7 @@ include (PolysquareCommon)
 include (CMakeUnit)
 
 polysquare_rules_bootstrap ()
-polysquare_gmock_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_gmock_bootstrap ()
 
 set (HEADER_FILE ${CMAKE_CURRENT_BINARY_DIR}/Header.h)
 set (HEADER_FILE_CONTENTS

@@ -13,7 +13,7 @@
 include (PolysquareCommon)
 include (CMakeUnit)
 
-polysquare_gmock_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_gmock_bootstrap ()
 
 assert_variable_matches_regex (${GTEST_LIBRARY} "(^.*gtest.*$)")
 assert_variable_matches_regex (${GTEST_MAIN_LIBRARY} "(^.*gtest_main.*$)")

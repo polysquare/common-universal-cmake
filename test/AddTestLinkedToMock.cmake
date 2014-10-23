@@ -7,7 +7,7 @@
 include (PolysquareCommon)
 include (CMakeUnit)
 
-polysquare_gmock_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_gmock_bootstrap ()
 
 set (MOCK_SOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Mock.cpp)
 set (MOCK_HEADER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

@@ -14,7 +14,7 @@ include (CMakeUnit)
 
 set (POLYSQUARE_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 
-polysquare_gmock_bootstrap (${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY})
+polysquare_gmock_bootstrap ()
 
 set (SOURCE_FILE_CONTENTS "")
 set (SOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/Source.cpp)
