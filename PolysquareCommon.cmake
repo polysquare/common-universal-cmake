@@ -244,13 +244,13 @@ macro (polysquare_vera_bootstrap)
         set (_copy_rules_target polysquare_verapp_copy_rules)
         set (_copy_profiles_target polysquare_verapp_copy_profiles)
         set (_r_out_dir
-             ${_POLYSQUARE_VERAPP_SCRIPTS_OUTPUT_DIRECTORY}/rules/)
+             ${_POLYSQUARE_VERAPP_SCRIPTS_OUTPUT_DIRECTORY}/rules)
         set (_profiles_out_dir
-             ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY}/profiles/)
+             ${_POLYSQUARE_VERAPP_OUTPUT_DIRECTORY}/profiles)
         set (_rules_in_dir
-             ${_POLYSQUARE_VERAPP_SCRIPTS_SOURCE_DIRECTORY}/rules/)
+             ${_POLYSQUARE_VERAPP_SCRIPTS_SOURCE_DIRECTORY}/rules)
         set (_profiles_in_dir
-             ${_POLYSQUARE_VERAPP_SOURCE_DIRECTORY}/profiles/)
+             ${_POLYSQUARE_VERAPP_SOURCE_DIRECTORY}/profiles)
 
         add_custom_target (${_i_target} ALL)
 
@@ -261,7 +261,7 @@ macro (polysquare_vera_bootstrap)
                                                       DIRECTORY ${_rules_in_dir}
                                                       DESTINATION ${_r_out_dir}
                                                       MATCH *.tcl
-                                                      "Vera++ rule")
+                                                      COMMENT "Vera++ rule")
 
         add_dependencies (${_i_target} polysquare_verapp_copy_rules)
 
@@ -789,18 +789,55 @@ function (_polysquare_add_target_internal TARGET)
 
     if (TARGET_INTERNAL_INCLUDE_DIRS OR TARGET_EXTERNAL_INCLUDE_DIRS)
 
-        # FIXME
-        # Older versions of CMake such as that in Travis-CI at the moment
-        # don't have per-target INCLUDE_DIRECTORIES, so we'll need to
-        # add it to the directory level at this point.
+        # On older versions of CMake we need to use the directory-level
+        # include_directories command
+        if (CMAKE_VERSION VERSION_LESS 2.8.12)
 
-        include_directories (SYSTEM ${TARGET_EXTERNAL_INCLUDE_DIRS})
-        include_directories (${TARGET_INTERNAL_INCLUDE_DIRS})
+            include_directories (SYSTEM ${TARGET_EXTERNAL_INCLUDE_DIRS})
+            include_directories (${TARGET_INTERNAL_INCLUDE_DIRS})
 
-        # set_property (TARGET ${TARGET}
-        #               PROPERTY INCLUDE_DIRECTORIES
-        #               ${TARGET_INTERNAL_INCLUDE_DIRS}
-        #               ${TARGET_EXTERNAL_INCLUDE_DIRS})
+        else (CMAKE_VERSION VERSION_LESS 2.8.12)
+
+            if (TARGET_INTERNAL_INCLUDE_DIRS)
+
+                set_property (TARGET ${TARGET}
+                              APPEND PROPERTY INCLUDE_DIRECTORIES
+                              ${TARGET_INTERNAL_INCLUDE_DIRS})
+
+            endif (TARGET_INTERNAL_INCLUDE_DIRS)
+
+            if (TARGET_EXTERNAL_INCLUDE_DIRS)
+
+                # Apparently they also need to be added to the directory
+                # scope as well, though it is still useful to have them
+                # be part of the interface
+                include_directories (SYSTEM ${TARGET_EXTERNAL_INCLUDE_DIRS})
+
+                # Only EXTERNAL_INCLUDE_DIRS make up part of the
+                # target's INTERFACE for now
+                set_property (TARGET ${TARGET}
+                              APPEND PROPERTY
+                              INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
+                              ${TARGET_EXTERNAL_INCLUDE_DIRS})
+
+            endif (TARGET_EXTERNAL_INCLUDE_DIRS)
+
+        endif (CMAKE_VERSION VERSION_LESS 2.8.12)
+
+        # XCode won't mark system include dirs with -isystem, so append
+        # -isystem ${EXTERNAL_INCLUDE_DIR} to the target's COMPILE_FLAGS for
+        # now
+        if (XCODE)
+
+            foreach (EXTERNAL_INCLUDE_DIR ${TARGET_EXTERNAL_INCLUDE_DIRS})
+
+                set_property (TARGET ${TARGET}
+                              APPEND_STRING PROPERTY COMPILE_FLAGS
+                              " -isystem ${EXTERNAL_INCLUDE_DIR}")
+
+            endforeach ()
+
+        endif (XCODE)
 
     endif (TARGET_INTERNAL_INCLUDE_DIRS OR TARGET_EXTERNAL_INCLUDE_DIRS)
 
@@ -829,6 +866,26 @@ function (_polysquare_add_target_internal TARGET)
     polysquare_add_sanitization_to_target (${TARGET}
                                            ${SANITIZATION_FORWARD_OPTIONS})
 
+    _polysquare_forward_options (TARGET ACCELERATE_FORWARD_OPTIONS
+                                 OPTION_ARGS
+                                 ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS}
+                                 MULTIVAR_ARGS
+                                 ${_ALL_POLYSQUARE_ACCELERATION_MULTIVAR_ARGS})
+    polysquare_accelerate_target_compilation (${TARGET}
+                                              ${ACCELERATE_FORWARD_OPTIONS})
+
+    # Make sure that we add checks to a target AFTER the target has been
+    # accelerated. This enables us to add target_pch as a dependency
+    # (which is necessary since the precompiled header file is not a
+    #  source of the target and the rule will need to be run before
+    #  any checks run)
+    set (ADDITIONAL_CHECKS_DEPENDENCIES)
+    if (TARGET ${TARGET}_pch)
+
+        set (ADDITIONAL_CHECKS_DEPENDENCIES ${TARGET}_pch)
+
+    endif (TARGET ${TARGET}_pch)
+
     _polysquare_forward_options (TARGET CHECKS_FORWARD_OPTIONS
                                  OPTION_ARGS
                                  ${_ALL_POLYSQUARE_CHECKS_OPTION_ARGS}
@@ -837,15 +894,10 @@ function (_polysquare_add_target_internal TARGET)
                                  MULTIVAR_ARGS
                                  ${_ALL_POLYSQUARE_SOURCES_MULTIVAR_ARGS})
     polysquare_add_checks_to_target (${TARGET}
-                                     ${CHECKS_FORWARD_OPTIONS})
-
-    _polysquare_forward_options (TARGET ACCELERATE_FORWARD_OPTIONS
-                                 OPTION_ARGS
-                                 ${_ALL_POLYSQUARE_ACCELERATION_OPTION_ARGS}
-                                 MULTIVAR_ARGS
-                                 ${_ALL_POLYSQUARE_BINARY_MULTIVAR_ARGS})
-    polysquare_accelerate_target_compilation (${TARGET}
-                                              ${ACCELERATE_FORWARD_OPTIONS})
+                                     ${CHECKS_FORWARD_OPTIONS}
+                                     DEPENDS
+                                     ${ADDITIONAL_CHECKS_DEPENDENCIES}
+                                     ${CHECKS_DEPENDENCIES})
 
 endfunction (_polysquare_add_target_internal)
 
@@ -1066,6 +1118,9 @@ function (polysquare_add_test_main MAIN_LIBRARY_NAME)
 
     _polysquare_add_gtest_includes_and_libraries (MAIN_LIB_EXT_INC_DIRS
                                                   MAIN_LIBRARY_LIBRARIES)
+
+    # Make sure to expand MAIN_LIB_EXT_INC_DIRS for _polysquare_forward_options
+    set (MAIN_LIBRARY_EXTERNAL_INCLUDE_DIRS ${MAIN_LIB_EXT_INC_DIRS})
 
     _clear_variable_names_if_false (MAIN_LIBRARY
                                     ${MAIN_LIBRARY_OPTION_ARGS})

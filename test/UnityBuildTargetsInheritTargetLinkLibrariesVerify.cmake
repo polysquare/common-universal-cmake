@@ -1,11 +1,13 @@
 # /test/UnityBuildTargetsInheritTargetLinkLibrariesVerify.cmake
 # Verifies the generated _unity target inherits all non-library
-# dependencies - eg, that our custom command is run when running the unity-build target.
+# dependencies - eg, that our custom command is run when running the
+# unity-build target.
 #
 # See LICENCE.md for Copyright information.
 
 include (CMakeUnit)
 set (BUILD_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/BUILD.output)
 
-# Check to see if ext_library was built and linked
-assert_file_has_line_matching (${BUILD_OUTPUT} "^.*ext_library.*$")
+# Check to see if library was built and linked
+assert_file_has_line_matching (${BUILD_OUTPUT}
+                               "^.*executable_unity.*library.*$")

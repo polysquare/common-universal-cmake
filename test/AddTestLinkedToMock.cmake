@@ -6,6 +6,7 @@
 
 include (PolysquareCommon)
 include (CMakeUnit)
+include (ExportCfgIntDirHelper)
 
 polysquare_gmock_bootstrap ()
 
@@ -61,9 +62,4 @@ polysquare_add_test (unittest
                      SOURCES ${TEST_SOURCE_FILE}
                      MOCKS mock)
 
-# We are disabling these for now as the version of
-# CMake in Travis is too old and doesn't set
-# INTERFACE_LINK_LIBRARIES or LINK_LIBRARIES
-# when calling add_custom_target. The build step
-# should cover us here anyways
-# assert_target_is_linked_to (unittest "mock")
+assert_target_is_linked_to (unittest mock)

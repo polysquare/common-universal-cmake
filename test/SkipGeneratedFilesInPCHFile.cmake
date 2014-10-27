@@ -7,6 +7,7 @@
 
 include (PolysquareCommon)
 include (CMakeUnit)
+include (ExportCfgIntDirHelper)
 
 polysquare_compiler_bootstrap ()
 polysquare_acceleration_bootstrap ()
