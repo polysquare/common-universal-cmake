@@ -12,36 +12,19 @@ endif (POLICY CMP0025)
 project (PolysquareCommonUniversalCMakeTests)
 cmake_minimum_required (VERSION 2.8)
 
-function (_get_real_library_path LIBRARY RESULT)
-
-    if (DEFINED LIBRARY)
-
-        set (location_)
-        if (TARGET ${LIBRARY})
-            get_property (_location TARGET ${LIBRARY} PROPERTY LOCATION)
-        endif (TARGET ${LIBRARY})
-
-        # If a location is set, we should use that one, otherwise
-        # just pass the linker line of the library.
-        if (_location)
-            set (${RESULT} ${_location} PARENT_SCOPE)
-        else (_location)
-            set (${RESULT} ${LIBRARY} PARENT_SCOPE)
-        endif (_location)
-
-    endif (DEFINED LIBRARY)
-
-endfunction (_get_real_library_path)
-
 # We assume that it is one-above us
 set (POLYSQUARE_RELATIVE_CMAKE_DIRECTORY
      ${CMAKE_CURRENT_SOURCE_DIR}/..)
 get_filename_component (POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY
                         ${POLYSQUARE_RELATIVE_CMAKE_DIRECTORY}
                         ABSOLUTE)
+set (CMAKE_UNIT_DIRECTORY
+     ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/cmake-unit)
 
 set (CMAKE_MODULE_PATH
      ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
+     ${CMAKE_UNIT_DIRECTORY}
+     ${CMAKE_CURRENT_SOURCE_DIR}
      ${CMAKE_MODULE_PATH})
 
 # We build a copy of Google Test locally and then specify its location in
@@ -66,42 +49,21 @@ set (SANITIZERS_USE_UBSAN ON CACHE FORCE "")
 
 polysquare_sanitizers_bootstrap ()
 
-set (CMAKE_UNIT_DIRECTORY
-     ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/cmake-unit)
-
-_get_real_library_path (${GTEST_LIBRARY} REAL_GTEST_LIBRARY)
-_get_real_library_path (${GMOCK_LIBRARY} REAL_GMOCK_LIBRARY)
-_get_real_library_path (${GTEST_MAIN_LIBRARY} REAL_GTEST_MAIN_LIBRARY)
-_get_real_library_path (${GMOCK_MAIN_LIBRARY} REAL_GMOCK_MAIN_LIBRARY)
-
-# Put our directories into the cache as well as the parameters for the
-# Google Test distribution.
-set (GTEST_EXTERNAL_SET_INCLUDE_DIR ${GTEST_INCLUDE_DIR})
-set (GMOCK_EXTERNAL_SET_INCLUDE_DIR ${GMOCK_INCLUDE_DIR})
-set (GTEST_EXTERNAL_SET_LIBRARY ${REAL_GTEST_LIBRARY})
-set (GMOCK_EXTERNAL_SET_LIBRARY ${REAL_GMOCK_LIBRARY})
-set (GTEST_EXTERNAL_SET_MAIN_LIBRARY ${REAL_GTEST_MAIN_LIBRARY})
-set (GMOCK_EXTERNAL_SET_MAIN_LIBRARY ${REAL_GMOCK_MAIN_LIBRARY})
-
-set (CMAKE_MODULE_PATH
-     ${CMAKE_UNIT_DIRECTORY}
-     ${POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY}
-     ${CMAKE_MODULE_PATH})
-
 include (CMakeUnitRunner)
 
 bootstrap_cmake_unit (VARIABLES CMAKE_MODULE_PATH
                                 POLYSQUARE_COMMON_UNIVERSAL_CMAKE_DIRECTORY
-                                GTEST_EXTERNAL_SET_INCLUDE_DIR
-                                GMOCK_EXTERNAL_SET_INCLUDE_DIR
-                                GTEST_EXTERNAL_SET_LIBRARY
-                                GMOCK_EXTERNAL_SET_LIBRARY
-                                GTEST_EXTERNAL_SET_MAIN_LIBRARY
-                                GMOCK_EXTERNAL_SET_MAIN_LIBRARY
+                                GTEST_INCLUDE_DIR
+                                GMOCK_INCLUDE_DIR
+                                GTEST_LIBRARY_LOCATION
+                                GMOCK_LIBRARY_LOCATION
+                                GTEST_MAIN_LIBRARY_LOCATION
+                                GMOCK_MAIN_LIBRARY_LOCATION
                                 CMAKE_CXX_COMPILER
                                 CMAKE_C_COMPILER
                                 CMAKE_CXX_FLAGS
                                 CMAKE_C_FLAGS
+                                CMAKE_CFG_INTDIR
                                 CPPCHECK_VERSION
                                 CMAKE_GENERATOR)
 
@@ -136,8 +98,6 @@ add_cmake_build_test (SkipGeneratedFilesInPCHFile
                       SkipGeneratedFilesInPCHFileVerify)
 add_cmake_build_test (DependenciesLinkedToTarget
                       DependenciesLinkedToTargetVerify)
-add_cmake_build_test (GenerateCompilationCommandsDatabaseAfterBootstrap
-                      GenerateCompilationCommandsDatabaseAfterBootstrapVerify)
 add_cmake_build_test (AddSourcesScanTarget
                       AddSourcesScanTargetVerify)
 add_cmake_build_test (AddTestTargetLinkedToLibraries VerifyGTest)
@@ -254,3 +214,14 @@ if (SANITIZERS_USE_TSAN)
                           CreateTSanInstrumentedBinaryVerify)
 
 endif (SANITIZERS_USE_TSAN)
+
+# Support for CMAKE_EXPORT_COMPILE_COMMANDS is being enabled on a per-generator
+# basis at this point
+if (CMAKE_GENERATOR STREQUAL "Ninja" OR
+    CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+
+  add_cmake_build_test (GenerateCompilationCommandsDatabaseAfterBootstrap
+                        GenerateCompilationCommandsDatabaseAfterBootstrapVerify)
+
+endif (CMAKE_GENERATOR STREQUAL "Ninja" OR
+       CMAKE_GENERATOR STREQUAL "Unix Makefiles")

@@ -10,8 +10,20 @@
 include (CMakeUnit)
 
 set (BUILD_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/BUILD.output)
-set (COMPILE_COMMANDS
-     ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json)
+if (CMAKE_GENERATOR STREQUAL "Ninja" OR
+    CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+
+    set (COMPILE_COMMANDS
+         ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json)
+
+else (CMAKE_GENERATOR STREQUAL "Ninja" OR
+      CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+
+    set (COMPILE_COMMANDS
+         ${CMAKE_CURRENT_BINARY_DIR}/lib_compile_commands/compile_commands.json)
+
+endif (CMAKE_GENERATOR STREQUAL "Ninja" OR
+       CMAKE_GENERATOR STREQUAL "Unix Makefiles")
 
 string (REPLACE "+" "." ESC_CXX_COMP "${CMAKE_CXX_COMPILER}")
 
