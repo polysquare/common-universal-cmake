@@ -1,30 +1,6 @@
-[submodule "gmock-cmake"]
-	path = gmock-cmake
-	url = git://github.com/polysquare/gmock-cmake
-[submodule "cppcheck-target-cmake"]
-	path = cppcheck-target-cmake
-	url = git://github.com/polysquare/cppcheck-target-cmake
-[submodule "veracpp-cmake"]
-	path = veracpp-cmake
-	url = git://github.com/polysquare/veracpp-cmake
 [submodule "gcov-cmake"]
 	path = gcov-cmake
 	url = git://github.com/polysquare/gcov-cmake
-[submodule "cmake-unit"]
-	path = cmake-unit
-	url = git://github.com/polysquare/cmake-unit
 [submodule "imported-project-utils"]
 	path = imported-project-utils
 	url = git://github.com/polysquare/cmake-imported-project-utils
-[submodule "clang-tidy-target-cmake"]
-	path = clang-tidy-target-cmake
-	url = git://github.com/polysquare/clang-tidy-target-cmake
-[submodule "include-what-you-use-target-cmake"]
-	path = include-what-you-use-target-cmake
-	url = git://github.com/polysquare/include-what-you-use-target-cmake
-[submodule "accelerate-target-cmake"]
-	path = accelerate-target-cmake
-	url = git://github.com/polysquare/accelerate-target-cmake
-[submodule "sanitize-target-cmake"]
-	path = sanitize-target-cmake
-	url = git://github.com/polysquare/sanitize-target-cmake

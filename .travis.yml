@@ -1,38 +1,37 @@
 language: cpp
+sudo: false
+cache:
+  directories:
+  - container
 env:
-  - CMAKE_GENERATOR="Unix Makefiles"
-  - CMAKE_GENERATOR="Ninja"
-  - CMAKE_GENERATOR="Unix Makefiles" USE_NEW_CPPCHECK=1
-before_install:
-  - git submodule update --init --recursive
-  - sudo apt-add-repository -y ppa:smspillaz/verapp-latest
-  - sudo add-apt-repository -y ppa:kubuntu-ppa/beta # CMake
-  - sudo apt-add-repository -y ppa:saiarcot895/chromium-dev
-  - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
-  - echo deb http://llvm.org/apt/precise/ llvm-toolchain-precise main | sudo tee --append /etc/apt/sources.list
-  - echo deb-src http://llvm.org/apt/precise/ llvm-toolchain-precise main | sudo tee --append /etc/apt/sources.list
-  - sudo apt-get update -qq
-  - sudo apt-get install --force-yes `cat DEPENDENCIES`
-  - if [[ $USE_NEW_CPPCHECK == 1 ]] ; then
-      wget http://archive.ubuntu.com/ubuntu/pool/universe/t/tinyxml2/libtinyxml2-0.0.0_0~git20120518.1.a2ae54e-1_amd64.deb;
-      wget http://archive.ubuntu.com/ubuntu/pool/universe/c/cppcheck/cppcheck_1.60.1-1_amd64.deb;
-      sudo dpkg -i libtinyxml2-0.0.0_0~git20120518.1.a2ae54e-1_amd64.deb cppcheck_1.60.1-1_amd64.deb;
-    fi;
-  - wget http://launchpadlibrarian.net/162564634/iwyu_3.3-4_amd64.deb
-  - sudo dpkg -i --force-depends iwyu_3.3-4_amd64.deb
-  - sudo ln -s /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy
-  - cmake --version
-  # Workaround to get Ninja to display verbose output
-  - if [[ $CMAKE_GENERATOR == "Ninja" ]] ; then
-     echo -e '!#/bin/bash\n/usr/bin/ninja -v $@' > ninja;
-     chmod +x ninja;
-     export PATH=`pwd`:${PATH};
-    fi
+- CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" DEPLOY="1"
+- CMAKE_GENERATOR="Ninja" CMAKE_VERSION="latest"
+- CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="3.0"
+- CMAKE_GENERATOR="Ninja" CMAKE_VERSION="3.0"
+- CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage"
+install:
+- eval $(curl -LSs --retry 100 --connect-timeout 3 public-travis-scripts.polysquare.org/bootstrap.py | python /dev/stdin -d container -s setup/bii/setup.py -e bash -p /dev/stdout --cmake-version ${CMAKE_VERSION})
 script:
-  - mkdir -p test/build
-  - pushd test/build
-  - cmake .. -G "${CMAKE_GENERATOR}" -DCMAKE_CXX_COMPILER=`which clang++` -DCMAKE_C_COMPILER=`which clang` &&
-    cmake --build `pwd` &&
-    ctest --output-on-failure &&
-    popd
-
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.1/bin/psq-travis-container-exec --distro Ubuntu --release precise container/_languages/os/Ubuntu.precise.None --show-output -- ln -sf /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy ; fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then wget http://launchpadlibrarian.net/174836660/iwyu_3.4-1_amd64.deb; container/_languages/python/3.4.1/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- dpkg -i --force-depends iwyu_3.4-1_amd64.deb; fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.1/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- ln -sf /usr/bin/clang++-3.6 /usr/bin/clang++ ;  fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.1/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- ln -sf /usr/bin/clang-3.6 /usr/bin/clang ;  fi
+- if [[ "${TRAVIS_OS_NAME}" == "osx" ]] ; then container/_languages/python/3.4.2/bin/psq-travis-container-exec --distro OSX --release 10.10 container/_languages/os/OSX.10.10.None -- brew link llvm --force ; fi
+- polysquare_run check/bii/check.py ${COVERAGE} --cmake-namespace psq --generator "${CMAKE_GENERATOR}"  --block "smspillaz/common-universal-cmake" --lint-exclude "*/gcov-cmake/*" --cmake-cache-variables "CMAKE_CXX_COMPILER=clang++" "CMAKE_C_COMPILER=clang"
+before_cache:
+- polysquare_cleanup
+after_success:
+- polysquare_run coverage/bii/coverage.py
+before_deploy:
+- polysquare_run deploy/bii/deploy.py
+deploy:
+  provider: biicode
+  skip_cleanup: true
+  user:
+    secure: LffA87hrkyh6Jm106yyDPCEWlBw4I5UGto/MBF7N6mKd2nT+3/r4VhxkADh8h5ZjQF7z0gnrX9ZEgay5Tw7WzO72lCkuEI0U9mMDwiwh3Li2nbr5p3NeOh5ghH0/NRSa3uudkX9Sk3DEyvvMLdAoiqwHb6pw1iImh8rzNgtSepw=
+  password:
+    secure: N3YIRTO8DGlxidxOWFDzfSLQa0QDp+XPvNeE17ibEsKxHMdfudt0wi21M1YYs+QOa6o7aN00o1fMTstN415Z3o5pydTgWkCDSdiuvXEqyKIO9NLAXAaGxCZqS8jNgHTgGZgI8qjCApj+664hYXxmlCkWN3YGhakBM8tT9jzGWu0=
+  on:
+    repo: polysquare/common-universal-cmake
+    branch: master
+    condition: ${DEPLOY} = 1
