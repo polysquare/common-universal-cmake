@@ -1,0 +1,7 @@
+clang-3.6
+clang++-3.6
+git
+libstdc++6-4.6-dev
+cppcheck
+google-mock
+vera++
