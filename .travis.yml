@@ -9,28 +9,31 @@ env:
 - CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="3.0"
 - CMAKE_GENERATOR="Ninja" CMAKE_VERSION="3.0"
 - CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage"
+addons:
+  apt:
+    sources:
+    - deadsnakes
+    packages:
+    - python3.4-dev
 install:
-- eval $(curl -LSs --retry 100 --connect-timeout 3 public-travis-scripts.polysquare.org/bootstrap.py | python /dev/stdin -d container -s setup/bii/setup.py -e bash -p /dev/stdout --cmake-version ${CMAKE_VERSION})
+- eval $(curl -LSs --retry 100 --connect-timeout 3 public-travis-scripts.polysquare.org/bootstrap.py | python /dev/stdin -d container -s setup/conan/setup.py -e bash -p /dev/stdout --cmake-version ${CMAKE_VERSION})
 script:
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.1/bin/psq-travis-container-exec --distro Ubuntu --release precise container/_languages/os/Ubuntu.precise.None --show-output -- ln -sf /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy ; fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then wget http://launchpadlibrarian.net/174836660/iwyu_3.4-1_amd64.deb; container/_languages/python/3.4.1/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- dpkg -i --force-depends iwyu_3.4-1_amd64.deb; fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.1/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- ln -sf /usr/bin/clang++-3.6 /usr/bin/clang++ ;  fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.1/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- ln -sf /usr/bin/clang-3.6 /usr/bin/clang ;  fi
-- if [[ "${TRAVIS_OS_NAME}" == "osx" ]] ; then container/_languages/python/3.4.2/bin/psq-travis-container-exec --distro OSX --release 10.10 container/_languages/os/OSX.10.10.None -- brew link llvm --force ; fi
-- polysquare_run check/bii/check.py ${COVERAGE} --cmake-namespace psq --generator "${CMAKE_GENERATOR}"  --block "smspillaz/common-universal-cmake" --lint-exclude "*/gcov-cmake/*" --cmake-cache-variables "CMAKE_CXX_COMPILER=clang++" "CMAKE_C_COMPILER=clang"
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec --distro Ubuntu --release precise container/_languages/os/Ubuntu.precise.None --show-output -- ln -sf /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy ; fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then wget http://launchpadlibrarian.net/174836660/iwyu_3.4-1_amd64.deb; container/_languages/python/3.4.4/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- dpkg -i --force-depends iwyu_3.4-1_amd64.deb; fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- ln -sf /usr/bin/clang++-3.6 /usr/bin/clang++ ;  fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- ln -sf /usr/bin/clang-3.6 /usr/bin/clang ;  fi
+- if [[ "${TRAVIS_OS_NAME}" == "osx" ]] ; then container/_languages/python/3.5.1/bin/psq-travis-container-exec --distro OSX --release 10.10 container/_languages/os/OSX.10.10.None -- brew link llvm --force ; fi
+- polysquare_run check/conan/check.py ${COVERAGE} --cmake-namespace psq --generator "${CMAKE_GENERATOR}" --cmake-cache-variables "CMAKE_CXX_COMPILER=clang++" "CMAKE_C_COMPILER=clang"
 before_cache:
 - polysquare_cleanup
 after_success:
-- polysquare_run coverage/bii/coverage.py
+- polysquare_run coverage/cmake/coverage.py
 before_deploy:
-- polysquare_run deploy/bii/deploy.py
+- polysquare_run deploy/conan/before_deploy.py --package="common-universal-cmake"
 deploy:
-  provider: biicode
+  provider: script
   skip_cleanup: true
-  user:
-    secure: LffA87hrkyh6Jm106yyDPCEWlBw4I5UGto/MBF7N6mKd2nT+3/r4VhxkADh8h5ZjQF7z0gnrX9ZEgay5Tw7WzO72lCkuEI0U9mMDwiwh3Li2nbr5p3NeOh5ghH0/NRSa3uudkX9Sk3DEyvvMLdAoiqwHb6pw1iImh8rzNgtSepw=
-  password:
-    secure: N3YIRTO8DGlxidxOWFDzfSLQa0QDp+XPvNeE17ibEsKxHMdfudt0wi21M1YYs+QOa6o7aN00o1fMTstN415Z3o5pydTgWkCDSdiuvXEqyKIO9NLAXAaGxCZqS8jNgHTgGZgI8qjCApj+664hYXxmlCkWN3YGhakBM8tT9jzGWu0=
+  script: "./travis-deploy"
   on:
     repo: polysquare/common-universal-cmake
     branch: master
