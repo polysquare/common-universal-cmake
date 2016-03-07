@@ -7,10 +7,10 @@
 #
 # See /LICENCE.md for Copyright information
 
-include ("smspillaz/cmake-include-guard/IncludeGuard")
+include ("cmake/cmake-include-guard/IncludeGuard")
 cmake_include_guard (SET_MODULE_PATH)
 
-include ("smspillaz/cmake-forward-arguments/ForwardArguments")
+include ("cmake/cmake-forward-arguments/ForwardArguments")
 include (CMakeParseArguments)
 include (CheckCXXCompilerFlag)
 
@@ -77,7 +77,7 @@ endfunction ()
 
 macro (psq_sanitizers_bootstrap)
 
-    include ("smspillaz/sanitize-target-cmake/SanitizeTarget")
+    include ("cmake/sanitize-target-cmake/SanitizeTarget")
 
 endmacro ()
 
@@ -93,7 +93,7 @@ macro (psq_acceleration_bootstrap)
     if (POLYSQUARE_USE_PRECOMPILED_HEADERS OR
         POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
 
-        include ("smspillaz/accelerate-target-cmake/AccelerateTarget")
+        include ("cmake/accelerate-target-cmake/AccelerateTarget")
 
     endif (POLYSQUARE_USE_PRECOMPILED_HEADERS OR
            POLYSQUARE_GENERATE_UNITY_BUILD_TARGETS)
@@ -106,7 +106,7 @@ macro (psq_coverage_bootstrap)
          "${PSQ_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/gcov-cmake"
          "${CMAKE_MODULE_PATH}")
 
-    include (GCovUtilities)
+    include ("cmake/gcov-cmake/GCovUtilities")
 
 endmacro ()
 
@@ -118,7 +118,7 @@ macro (psq_cppcheck_bootstrap)
 
     if (POLYSQUARE_USE_CPPCHECK)
 
-        include ("smspillaz/cppcheck-target-cmake/CPPCheck")
+        include ("cmake/cppcheck-target-cmake/CPPCheck")
 
         cppcheck_validate (CPPCHECK_AVAILABLE)
 
@@ -169,7 +169,7 @@ macro (psq_clang_tidy_bootstrap)
 
     if (POLYSQUARE_USE_CLANG_TIDY)
 
-        include ("smspillaz/clang-tidy-target-cmake/ClangTidy")
+        include ("cmake/clang-tidy-target-cmake/ClangTidy")
 
         clang_tidy_validate (CLANG_TIDY_AVAILABLE)
 
@@ -210,7 +210,7 @@ macro (psq_include_what_you_use_bootstrap)
 
     if (POLYSQUARE_USE_IWYU)
 
-        include ("smspillaz/iwyu-target-cmake/IncludeWhatYouUse")
+        include ("cmake/iwyu-target-cmake/IncludeWhatYouUse")
 
         iwyu_validate (IWYU_AVAILABLE)
 
@@ -244,7 +244,7 @@ macro (psq_vera_bootstrap)
 
     if (POLYSQUARE_USE_VERAPP)
 
-        include ("smspillaz/verapp-cmake/VeraPPUtilities")
+        include ("cmake/verapp-cmake/VeraPPUtilities")
         verapp_validate (VERAPP_AVAILABLE 1.2)
 
         if (NOT VERAPP_AVAILABLE)
@@ -338,7 +338,7 @@ macro (psq_gmock_bootstrap)
 
     if (POLYSQUARE_BUILD_TESTS)
 
-        include ("smspillaz/gmock-cmake/GMockImport")
+        include ("cmake/gmock-cmake/GMockImport")
         gmock_import_from_find_module (REQUIRED)
 
     else ()

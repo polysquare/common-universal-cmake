@@ -1,6 +1,3 @@
-[submodule "gcov-cmake"]
-	path = gcov-cmake
-	url = git://github.com/polysquare/gcov-cmake
 [submodule "imported-project-utils"]
 	path = imported-project-utils
 	url = git://github.com/polysquare/cmake-imported-project-utils
