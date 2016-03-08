@@ -4,11 +4,16 @@ cache:
   directories:
   - container
 env:
-- CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" DEPLOY="1"
-- CMAKE_GENERATOR="Ninja" CMAKE_VERSION="latest"
-- CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="3.0"
-- CMAKE_GENERATOR="Ninja" CMAKE_VERSION="3.0"
-- CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage"
+  matrix:
+  - CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" DEPLOY="1"
+  - CMAKE_GENERATOR="Ninja" CMAKE_VERSION="latest"
+  - CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="3.0"
+  - CMAKE_GENERATOR="Ninja" CMAKE_VERSION="3.0"
+  - CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage"
+  global:
+  - secure: JEjMUojp81OtlxeljKhbEg96Z1gRm2G4ToDeO3BmNZ9iAbFEArr6ZUSKPJzv56kdV1mkgh0EQzOo4BnCO19A8+WiRTfi1+ZdLvd7p+lcGx8iJctZtwhlfmaDR87MXFZYP3LvKASwa2VTi/jqmtsNYes1/+ti5wfwEWbMICaPZ90=
+  - secure: IJJ9zobPHIDnvTClcZhVkIFwS6hhMHVT3klvAAeAreummaYa4GHYcyD82FT/ooMeUjLnoK+9hiIb3fWZvsVo+axdEJPOHdQ+h0s1hNEIq1pSQIwA1abMvpMuNvkoYrKGb4pygyE4tYlJqGmyfHXGhlo0Li84qQ5JKsmQVL4CZh8=
+  - secure: LeF41KFO1TSLLtSWv5zCt9BKEZv3/ERhgV4NKhpZMPf7IkwIT5yR5/sS2qSS9WJO6Sr0S+ExyXHw+HqW8h/dteoZ0puw2b7AUEkENb6KU6/PqO/FufWB3iUSczOEq+xl0BKZ5K6wzKOE+l0Xtujm2vla8qa9CD0sKXqBaURSSmQ=
 addons:
   apt:
     sources:
@@ -16,14 +21,28 @@ addons:
     packages:
     - python3.4-dev
 install:
-- eval $(curl -LSs --retry 100 --connect-timeout 3 public-travis-scripts.polysquare.org/bootstrap.py | python /dev/stdin -d container -s setup/conan/setup.py -e bash -p /dev/stdout --cmake-version ${CMAKE_VERSION})
+- eval $(curl -LSs --retry 100 --connect-timeout 3 public-travis-scripts.polysquare.org/bootstrap.py
+  | python /dev/stdin -d container -s setup/conan/setup.py -e bash -p /dev/stdout
+  --cmake-version ${CMAKE_VERSION})
 script:
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec --distro Ubuntu --release precise container/_languages/os/Ubuntu.precise.None --show-output -- ln -sf /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy ; fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then wget http://launchpadlibrarian.net/174836660/iwyu_3.4-1_amd64.deb; container/_languages/python/3.4.4/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- dpkg -i --force-depends iwyu_3.4-1_amd64.deb; fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- ln -sf /usr/bin/clang++-3.6 /usr/bin/clang++ ;  fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise" --show-output -- ln -sf /usr/bin/clang-3.6 /usr/bin/clang ;  fi
-- if [[ "${TRAVIS_OS_NAME}" == "osx" ]] ; then container/_languages/python/3.5.1/bin/psq-travis-container-exec --distro OSX --release 10.10 container/_languages/os/OSX.10.10.None -- brew link llvm --force ; fi
-- polysquare_run check/conan/check.py ${COVERAGE} --cmake-namespace psq --generator "${CMAKE_GENERATOR}" --cmake-cache-variables "CMAKE_CXX_COMPILER=clang++" "CMAKE_C_COMPILER=clang"
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec
+  --distro Ubuntu --release precise container/_languages/os/Ubuntu.precise.None --show-output
+  -- ln -sf /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy ; fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then wget http://launchpadlibrarian.net/174836660/iwyu_3.4-1_amd64.deb;
+  container/_languages/python/3.4.4/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None
+  --distro "Ubuntu" --release "precise" --show-output -- dpkg -i --force-depends iwyu_3.4-1_amd64.deb;
+  fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec
+  container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise"
+  --show-output -- ln -sf /usr/bin/clang++-3.6 /usr/bin/clang++ ;  fi
+- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec
+  container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise"
+  --show-output -- ln -sf /usr/bin/clang-3.6 /usr/bin/clang ;  fi
+- if [[ "${TRAVIS_OS_NAME}" == "osx" ]] ; then container/_languages/python/3.5.1/bin/psq-travis-container-exec
+  --distro OSX --release 10.10 container/_languages/os/OSX.10.10.None -- brew link
+  llvm --force ; fi
+- polysquare_run check/conan/check.py ${COVERAGE} --cmake-namespace psq --generator
+  "${CMAKE_GENERATOR}" --cmake-cache-variables "CMAKE_CXX_COMPILER=clang++" "CMAKE_C_COMPILER=clang"
 before_cache:
 - polysquare_cleanup
 after_success:
@@ -37,4 +56,4 @@ deploy:
   on:
     repo: polysquare/common-universal-cmake
     branch: master
-    condition: ${DEPLOY} = 1
+    condition: "${DEPLOY} = 1"
