@@ -2,6 +2,7 @@ _pch
 _unity
 AddressSanitizer
 CMake
+COMPILE_OPTIONS
 CPPCheck
 GCov
 MemorySanitizer

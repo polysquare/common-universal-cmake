@@ -35,6 +35,14 @@ class CommonUniversalCMakeCMakeConan(ConanFile):
         os.unlink(zip_name)
 
     def package(self):
+        self.copy(pattern="*polysquare",
+                  dst="cmake/common-universal-cmake",
+                  src="common-universal-cmake-" + VERSION,
+                  keep_path=True)
+        self.copy(pattern="*.tcl",
+                  dst="cmake/common-universal-cmake",
+                  src="common-universal-cmake-" + VERSION,
+                  keep_path=True)
         self.copy(pattern="*.cmake",
                   dst="cmake/common-universal-cmake",
                   src="common-universal-cmake-" + VERSION,

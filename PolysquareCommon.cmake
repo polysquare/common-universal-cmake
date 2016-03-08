@@ -13,6 +13,7 @@ cmake_include_guard (SET_MODULE_PATH)
 include ("cmake/cmake-forward-arguments/ForwardArguments")
 include (CMakeParseArguments)
 include (CheckCXXCompilerFlag)
+include (GenerateExportHeader)
 
 # This file's directory
 set (PSQ_COMMON_UNIVERSAL_CMAKE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}")
@@ -664,7 +665,9 @@ function (psq_accelerate_target_compilation TARGET)
                              OPTION_ARGS
                              ${PSQ_ALL_ACCELERATION_OPTION_ARGS}
                              MULTIVAR_ARGS DEPENDS)
-    message (STATUS "Accelerating ${TARGET} ${ACCELERATE_TARGET_FORWARD_OPTS}")
+    # This should eventually be updated to use COMPILE_OPTIONS
+    set_target_properties ("${TARGET}" PROPERTIES
+                           COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS}")
     psq_accelerate_target (${TARGET}
                            ${ACCELERATE_TARGET_FORWARD_OPTS})
 
