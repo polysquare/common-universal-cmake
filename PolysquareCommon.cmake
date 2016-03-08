@@ -13,6 +13,7 @@ cmake_include_guard (SET_MODULE_PATH)
 include ("cmake/cmake-forward-arguments/ForwardArguments")
 include (CMakeParseArguments)
 include (CheckCXXCompilerFlag)
+include (GenerateExportHeader)
 
 # This file's directory
 set (PSQ_COMMON_UNIVERSAL_CMAKE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}")
