@@ -100,11 +100,12 @@ endmacro ()
 
 macro (psq_coverage_bootstrap)
 
-    set (CMAKE_MODULE_PATH
-         "${PSQ_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/gcov-cmake"
-         "${CMAKE_MODULE_PATH}")
-
     include ("cmake/gcov-cmake/GCovUtilities")
+    gcov_get_compile_flags (PSQ_CB_CFLAGS)
+
+    get_property (PSQ_CB_PSQ_CFLAGS GLOBAL PROPERTY PSQ_CFLAGS)
+    set_property (GLOBAL PROPERTY PSQ_CFLAGS
+                  "${PSQ_CB_PSQ_CFLAGS} ${PSQ_CB_CFLAGS}")
 
 endmacro ()
 

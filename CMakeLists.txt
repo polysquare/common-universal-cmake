@@ -1197,9 +1197,6 @@ function (psq_test_compiler_flags_set_after_compiler_bootstrap)
 
         if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
 
-            cmake_unit_assert_that (CXXFLAGS variable_contains "/WX")
-            cmake_unit_assert_that (CXXFLAGS variable_contains "-Wall")
-            cmake_unit_assert_that (CXXFLAGS variable_contains "/W4")
             cmake_unit_assert_that (CFLAGS variable_contains "/WX")
             cmake_unit_assert_that (CFLAGS variable_contains "-Wall")
             cmake_unit_assert_that (CFLAGS variable_contains "/W4")
@@ -1208,18 +1205,11 @@ function (psq_test_compiler_flags_set_after_compiler_bootstrap)
 
             cmake_unit_assert_that (CXXFLAGS
                                     variable_contains "-std=c++1y")
-            cmake_unit_assert_that (CXXFLAGS variable_contains "-fPIC")
             cmake_unit_assert_that (CFLAGS variable_contains "-fPIC")
-            cmake_unit_assert_that (CXXFLAGS variable_contains "-Wall")
+            cmake_unit_assert_that (CFLAGS variable_contains "-fPIC")
             cmake_unit_assert_that (CFLAGS variable_contains "-Wall")
-            cmake_unit_assert_that (CXXFLAGS
-                                    variable_contains "-Werror")
             cmake_unit_assert_that (CFLAGS variable_contains "-Werror")
-            cmake_unit_assert_that (CXXFLAGS
-                                    variable_contains "-Wextra")
             cmake_unit_assert_that (CFLAGS variable_contains "-Wextra")
-            cmake_unit_assert_that (CXXFLAGS variable_contains
-                                    "-Wno-unused-parameter")
             cmake_unit_assert_that (CFLAGS variable_contains
                                     "-Wno-unused-parameter")
 
@@ -1245,15 +1235,10 @@ function (psq_test_coverage_flags_not_set_for_clang_after_coverage_bootstrap)
         set (CMAKE_COMPILER_IS_GNUCC FALSE CACHE BOOL "" FORCE)
         set (ENABLE_COVERAGE TRUE CACHE BOOL "" FORCE)
         psq_compiler_bootstrap ()
-        psq_coverage_bootstrap ("${PSQ_COMMON_UNIVERSAL_CMAKE_DIRECTORY}")
-        get_property (CFLAGS GLOBAL PROPERTY PSQ_CFLAGS)
-        get_property (CXXFLAGS GLOBAL PROPERTY PSQ_CXXFLAGS)
-        cmake_unit_assert_that (CXXFLAGS not variable_contains
-                                "-ftest-coverage")
+        psq_coverage_bootstrap ()
+        get_property (CFLAGS GLOBAL PROPERTY PSQ_CXXFLAGS)
         cmake_unit_assert_that (CFLAGS not variable_contains
                                 "-ftest-coverage")
-        cmake_unit_assert_that (CXXFLAGS not variable_contains
-                                "-fprofile-arcs")
         cmake_unit_assert_that (CFLAGS not variable_contains
                                 "-fprofile-arcs")
 
@@ -1277,15 +1262,11 @@ function (psq_test_coverage_flags_set_for_gcc_after_coverage_bootstrap)
         set (CMAKE_COMPILER_IS_GNUCC TRUE CACHE BOOL "" FORCE)
         set (ENABLE_COVERAGE TRUE CACHE BOOL "" FORCE)
         psq_compiler_bootstrap ()
-        psq_coverage_bootstrap ("${PSQ_COMMON_UNIVERSAL_CMAKE_DIRECTORY}")
+        psq_coverage_bootstrap ()
         get_property (CFLAGS GLOBAL PROPERTY PSQ_CFLAGS)
-        get_property (CXXFLAGS GLOBAL PROPERTY PSQ_CXXFLAGS)
-        cmake_unit_assert_that (CXXFLAGS variable_contains
-                                "-ftest-coverage")
+        message (STATUS "${CFLAGS}--")
         cmake_unit_assert_that (CFLAGS variable_contains
                                 "-ftest-coverage")
-        cmake_unit_assert_that (CXXFLAGS variable_contains
-                                "-fprofile-arcs")
         cmake_unit_assert_that (CFLAGS variable_contains
                                 "-fprofile-arcs")
 
