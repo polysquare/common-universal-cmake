@@ -5,6 +5,7 @@
 # See /LICENCE.md for Copyright information
 
 include ("${CMAKE_CURRENT_LIST_DIR}/conanbuildinfo.cmake")
+
 set (CMAKE_MODULE_PATH
      "${CMAKE_CURRENT_LIST_DIR}"
      ${CONAN_CMAKE_MODULE_PATH}  # NOLINT:correctness/quotes
@@ -25,6 +26,7 @@ if ("${_CMAKE_UNIT_PHASE}" STREQUAL "PRECONFIGURE") # NOLINT:access/private_var
     # to having to download it all the time.
     include (PolysquareCommon)
 
+    conan_basic_setup ()
     psq_compiler_bootstrap ()
     psq_gmock_bootstrap ()
 

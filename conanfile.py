@@ -20,7 +20,8 @@ class CommonUniversalCMakeCMakeConan(ConanFile):
         "gcov-cmake/master@smspillaz/gcov-cmake",
         "iwyu-target-cmake/master@smspillaz/iwyu-target-cmake",
         "sanitize-target-cmake/master@smspillaz/sanitize-target-cmake",
-        "verapp-cmake/master@smspillaz/verapp-cmake"
+        "verapp-cmake/master@smspillaz/verapp-cmake",
+        "gtest/master@smspillaz/gtest"
     )
     url = "http://github.com/polysquare/common-universal-cmake"
     license = "MIT"
