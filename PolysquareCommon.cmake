@@ -64,12 +64,9 @@ function (psq_compiler_bootstrap)
     _psq_add_cxx_flag (PSQ_FPIC PSQ_CFLAGS)
 
     set (CMAKE_CXX_STANDARD_REQUIRED 14 PARENT_SCOPE)
-    set (CMAKE_CXX_FLAGS
-         "${CMAKE_CXX_FLAGS} ${PSQ_CXXFLAGS} ${PSQ_CFLAGS}"
-         CACHE STRING "" FORCE)
-    set (CMAKE_C_FLAGS
-         "${CMAKE_C_FLAGS} ${PSQ_CFLAGS}"
-         CACHE STRING "" FORCE)
+
+    set_property (GLOBAL PROPERTY PSQ_CFLAGS "${PSQ_CFLAGS}")
+    set_property (GLOBAL PROPERTY PSQ_CXXFLAGS "${PSQ_CXXFLAGS}")
 
     # Generate a compilation commands database
     set (CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
@@ -103,11 +100,12 @@ endmacro ()
 
 macro (psq_coverage_bootstrap)
 
-    set (CMAKE_MODULE_PATH
-         "${PSQ_COMMON_UNIVERSAL_CMAKE_DIRECTORY}/gcov-cmake"
-         "${CMAKE_MODULE_PATH}")
-
     include ("cmake/gcov-cmake/GCovUtilities")
+    gcov_get_compile_flags (PSQ_CB_CFLAGS)
+
+    get_property (PSQ_CB_PSQ_CFLAGS GLOBAL PROPERTY PSQ_CFLAGS)
+    set_property (GLOBAL PROPERTY PSQ_CFLAGS
+                  "${PSQ_CB_PSQ_CFLAGS} ${PSQ_CB_CFLAGS}")
 
 endmacro ()
 
@@ -665,9 +663,6 @@ function (psq_accelerate_target_compilation TARGET)
                              OPTION_ARGS
                              ${PSQ_ALL_ACCELERATION_OPTION_ARGS}
                              MULTIVAR_ARGS DEPENDS)
-    # This should eventually be updated to use COMPILE_OPTIONS
-    set_target_properties ("${TARGET}" PROPERTIES
-                           COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS}")
     psq_accelerate_target (${TARGET}
                            ${ACCELERATE_TARGET_FORWARD_OPTS})
 
@@ -735,6 +730,12 @@ function (_psq_add_target_internal TARGET)
                            "${TARGET_SINGLEVAR_ARGS}"
                            "${TARGET_MULTIVAR_ARGS}"
                            ${ARGN})
+
+    get_property (PSQ_CFLAGS GLOBAL PROPERTY PSQ_CFLAGS)
+    get_property (PSQ_CXXFLAGS GLOBAL PROPERTY PSQ_CXXFLAGS)
+
+    set_target_properties ("${TARGET}" PROPERTIES
+                           COMPILE_FLAGS "${PSQ_CFLAGS} ${PSQ_CXXFLAGS}")
 
     if (TARGET_LIBRARIES)
 
