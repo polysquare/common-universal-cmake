@@ -610,6 +610,15 @@ function (psq_add_checked_sources TARGET)
     add_custom_target (${TARGET} ALL
                        DEPENDS ${SOURCES_SCANNED_STAMP})
 
+    get_property (PSQ_CXXFLAGS GLOBAL PROPERTY PSQ_CXXFLAGS)
+    get_property (PSQ_CFLAGS GLOBAL PROPERTY PSQ_CFLAGS)
+    set_property (TARGET ${TARGET}_scannable
+                  PROPERTY COMPILE_FLAGS
+                  "${PSQ_CFLAGS} ${PSQ_CXXFLAGS}")
+    get_property (COMPILE_FLAGS
+                  TARGET "${TARGET}_scannable"
+                  PROPERTY COMPILE_FLAGS)
+
     set_property (SOURCE ${SOURCES_SCANNED_STAMP}
                   PROPERTY OBJECT_DEPENDS
                   ${SOURCES_SOURCES})
