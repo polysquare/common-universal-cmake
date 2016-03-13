@@ -1230,7 +1230,7 @@ endfunction ()
 
 # Tests that coverage flags are not defined for non-gcc compilers even if
 # we set ENABLE_COVERAGE in the cache
-function (psq_test_coverage_flags_not_set_for_clang_after_coverage_bootstrap)
+function (psq_test_coverage_flags_not_set_for_clang)
 
     function (psq_configure)
 
