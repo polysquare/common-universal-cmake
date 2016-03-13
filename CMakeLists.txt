@@ -478,7 +478,6 @@ macro (_psq_define_options_for_instrumented_binary PSQ_FWD CREATE_SRC_FWD)
     set (MULTIVAR_ARGS
          ${PSQ_ALL_BINARY_MULTIVAR_ARGS}
          INCLUDES
-         DEFINES
          FUNCTIONS
          PREPEND_CONTENTS
          INCLUDE_DIRECTORIES)
