@@ -1,5 +1,6 @@
 clone_depth: 10
 clone_folder: C:\projects\c-u-c
+platform: x86
 
 cache:
  - C:/container -> appveyor.yml
