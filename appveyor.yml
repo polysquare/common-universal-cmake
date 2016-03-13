@@ -16,7 +16,6 @@ matrix:
   fast_finish: true
 
 install:
- - cmd: git submodule update --init --recursive
  - ps: $env:PATH="C:\\MinGW\bin;C:\\Python34;C:\\Python34\\Scripts;C:\\Python27;C:\\Python27\Scripts;C:\\Ruby21\bin:$env:PATH"
  - ps: wget public-travis-scripts.polysquare.org/bootstrap.py -OutFile bootstrap
  - ps: python bootstrap -d "C:/container" -s setup/conan/setup.py -e powershell -p test-env.ps1 --no-mdl --cmake-version latest
