@@ -26,6 +26,8 @@ if ("${_CMAKE_UNIT_PHASE}" STREQUAL "PRECONFIGURE") # NOLINT:access/private_var
     # to having to download it all the time.
     include (PolysquareCommon)
 
+    set (GTEST_FORCE_FIND_STATIC ON)
+
     conan_basic_setup ()
     psq_compiler_bootstrap ()
     psq_gmock_bootstrap ()
