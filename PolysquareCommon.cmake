@@ -371,13 +371,12 @@ set (PSQ_ALL_ACCELERATION_MULTIVAR_ARGS
      DEPENDS)
 
 set (PSQ_ALL_SANITIZATION_OPTION_ARGS
-     ${PSQ_ALL_ACCELERATION_OPTION_ARGS}
      NO_ASAN
      NO_MSAN
      NO_TSAN
      NO_UBSAN)
 set (PSQ_ALL_SANITIZATION_MULTIVAR_ARGS
-     ${PSQ_ALL_ACCELERATION_OPTION_ARGS})
+     DEPENDS)
 
 set (PSQ_ALL_SOURCES_OPTION_ARGS
      ${PSQ_ALL_CHECKS_OPTION_ARGS})
@@ -401,7 +400,8 @@ set (PSQ_ALL_BINARY_SINGLEVAR_ARGS
 set (PSQ_ALL_BINARY_MULTIVAR_ARGS
      ${PSQ_ALL_SOURCES_MULTIVAR_ARGS}
      ${PSQ_ALL_ACCELERATION_MULTIVAR_ARGS}
-     LIBRARIES)
+     LIBRARIES
+     LINK_DIRECTORIES)
 
 function (psq_add_checks_to_target TARGET)
 
@@ -896,6 +896,12 @@ function (psq_add_library LIBRARY_NAME LIBRARY_TYPE)
 
     endif ()
 
+    if (LIBRARY_LINK_DIRECTORIES)
+
+        link_directories ("${LIBRARY_LINK_DIRECTORIES}")
+
+    endif ()
+
     add_library (${LIBRARY_NAME}
                  ${LIBRARY_TYPE}
                  ${LIBRARY_SOURCES})
@@ -937,6 +943,12 @@ function (psq_add_executable EXECUTABLE_NAME)
 
     endif ()
 
+    if (EXECUTABLE_LINK_DIRECTORIES)
+
+        link_directories ("${EXECUTABLE_LINK_DIRECTORIES}")
+
+    endif ()
+
     add_executable (${EXECUTABLE_NAME}
                     ${EXECUTABLE_SOURCES})
 
@@ -953,7 +965,8 @@ function (psq_add_executable EXECUTABLE_NAME)
 endfunction ()
 
 macro (_psq_add_gtest_includes_and_libraries EXTERNAL_INCLUDE_DIRS_VAR
-                                             LIBRARIES_VAR)
+                                             LIBRARIES_VAR
+                                             LINK_DIRECTORIES_VAR)
 
     list (APPEND ${EXTERNAL_INCLUDE_DIRS_VAR}
           "${GTEST_INCLUDE_DIR}"
@@ -963,6 +976,9 @@ macro (_psq_add_gtest_includes_and_libraries EXTERNAL_INCLUDE_DIRS_VAR
           ${GTEST_LIBRARY}
           ${GMOCK_LIBRARY}
           ${CMAKE_THREAD_LIBS_INIT})
+
+    list (APPEND ${LINK_DIRECTORIES_VAR}
+          ${GTEST_LIBRARY_DIRS})
 
 endmacro ()
 
@@ -1015,7 +1031,8 @@ function (psq_add_test TEST_NAME)
     endif ()
 
     _psq_add_gtest_includes_and_libraries (TEST_EXTERNAL_INCLUDE_DIRS
-                                           TEST_LIBRARIES)
+                                           TEST_LIBRARIES
+                                           TEST_LINK_DIRECTORIES)
 
     if (TEST_MAIN_LIBRARY)
 
@@ -1090,7 +1107,8 @@ function (psq_add_test_main MAIN_LIBRARY_NAME)
     set (MAIN_LIB_EXT_INC_DIRS ${MAIN_LIBRARY_EXTERNAL_INCLUDE_DIRS})
 
     _psq_add_gtest_includes_and_libraries (MAIN_LIB_EXT_INC_DIRS
-                                           MAIN_LIBRARY_LIBRARIES)
+                                           MAIN_LIBRARY_LIBRARIES
+                                           MAIN_LIBRARY_LINK_DIRECTORIES)
 
     # Make sure to expand MAIN_LIB_EXT_INC_DIRS for cmake_forward_arguments
     set (MAIN_LIBRARY_EXTERNAL_INCLUDE_DIRS ${MAIN_LIB_EXT_INC_DIRS})
@@ -1138,7 +1156,8 @@ function (psq_add_matcher MATCHER_NAME)
     endif ()
 
     _psq_add_gtest_includes_and_libraries (MATCHER_EXTERNAL_INCLUDE_DIRS
-                                           MATCHER_LIBRARIES)
+                                           MATCHER_LIBRARIES
+                                           MATCHER_LINK_DIRECTORIES)
 
     _psq_clear_variable_names_if_false (MATCHER
                                         ${MATCHER_OPTION_ARGS})
@@ -1183,7 +1202,8 @@ function (psq_add_mock MOCK_NAME)
     endif ()
 
     _psq_add_gtest_includes_and_libraries (MOCK_EXTERNAL_INCLUDE_DIRS
-                                           MOCK_LIBRARIES)
+                                           MOCK_LIBRARIES
+                                           MOCK_LINK_DIRECTORIES)
 
     _psq_clear_variable_names_if_false (MOCK
                                         ${MOCK_OPTION_ARGS})

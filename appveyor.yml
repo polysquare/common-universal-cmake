@@ -1,21 +1,19 @@
 clone_depth: 10
 clone_folder: C:\projects\c-u-c
+platform: x86
 
 cache:
  - C:/container -> appveyor.yml
 
 environment:
   matrix:
-    - CMAKE_GENERATOR: "NMake Makefiles"
     - CMAKE_GENERATOR: "Visual Studio 10 2010"
-    - CMAKE_GENERATOR: "Visual Studio 11 2012"
     - CMAKE_GENERATOR: "Visual Studio 12 2013"
 
 matrix:
   fast_finish: true
 
 install:
- - cmd: git submodule update --init --recursive
  - ps: $env:PATH="C:\\MinGW\bin;C:\\Python34;C:\\Python34\\Scripts;C:\\Python27;C:\\Python27\Scripts;C:\\Ruby21\bin:$env:PATH"
  - ps: wget public-travis-scripts.polysquare.org/bootstrap.py -OutFile bootstrap
  - ps: python bootstrap -d "C:/container" -s setup/conan/setup.py -e powershell -p test-env.ps1 --no-mdl --cmake-version latest

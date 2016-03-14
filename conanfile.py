@@ -1,9 +1,27 @@
 from conans import ConanFile
 from conans.tools import download, unzip
+from contextlib import contextmanager
 import os
+import platform
 
 VERSION = "0.0.4"
 
+
+def in_dir(directory):
+    try:
+        os.makedirs(directory)
+    except OSError:
+        pass
+
+    try:
+        old_dir = os.getcwd()
+        os.chdir(directory)
+        yield directory
+    finally:
+        os.chdir(old_dir)
+
+
+GTEST_DEP = "gtest/master@smspillaz/gtest" if platform.system() != "Windows" else ""
 
 class CommonUniversalCMakeCMakeConan(ConanFile):
     name = "common-universal-cmake"
@@ -21,8 +39,9 @@ class CommonUniversalCMakeCMakeConan(ConanFile):
         "iwyu-target-cmake/master@smspillaz/iwyu-target-cmake",
         "sanitize-target-cmake/master@smspillaz/sanitize-target-cmake",
         "verapp-cmake/master@smspillaz/verapp-cmake",
-        "gtest/master@smspillaz/gtest"
+        GTEST_DEP
     )
+
     url = "http://github.com/polysquare/common-universal-cmake"
     license = "MIT"
 

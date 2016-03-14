@@ -26,6 +26,8 @@ if ("${_CMAKE_UNIT_PHASE}" STREQUAL "PRECONFIGURE") # NOLINT:access/private_var
     # to having to download it all the time.
     include (PolysquareCommon)
 
+    set (GTEST_FORCE_FIND_STATIC ON)
+
     conan_basic_setup ()
     psq_compiler_bootstrap ()
     psq_gmock_bootstrap ()
@@ -476,7 +478,6 @@ macro (_psq_define_options_for_instrumented_binary PSQ_FWD CREATE_SRC_FWD)
     set (MULTIVAR_ARGS
          ${PSQ_ALL_BINARY_MULTIVAR_ARGS}
          INCLUDES
-         DEFINES
          FUNCTIONS
          PREPEND_CONTENTS
          INCLUDE_DIRECTORIES)
@@ -1229,7 +1230,7 @@ endfunction ()
 
 # Tests that coverage flags are not defined for non-gcc compilers even if
 # we set ENABLE_COVERAGE in the cache
-function (psq_test_coverage_flags_not_set_for_clang_after_coverage_bootstrap)
+function (psq_test_coverage_flags_not_set_for_clang)
 
     function (psq_configure)
 
