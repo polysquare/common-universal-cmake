@@ -4,7 +4,7 @@ from contextlib import contextmanager
 import os
 import platform
 
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 
 
 def in_dir(directory):
