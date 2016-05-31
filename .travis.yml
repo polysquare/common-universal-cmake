@@ -29,26 +29,11 @@ addons:
     packages:
     - python3.4-dev
 install:
+- if [[ "${TRAVIS_OS_NAME}" == "osx" ]] ; then printf "cppcheck\nninja\nvera++\niwyu\n" > PACKAGES.OSX.10.10 ; fi
 - eval $(curl -LSs --retry 100 --connect-timeout 3 public-travis-scripts.polysquare.org/bootstrap.py
   | python /dev/stdin -d container -s setup/conan/setup.py -e bash -p /dev/stdout
   --cmake-version ${CMAKE_VERSION})
 script:
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec
-  --distro Ubuntu --release precise container/_languages/os/Ubuntu.precise.None --show-output
-  -- ln -sf /usr/bin/clang-tidy-3.6 /usr/bin/clang-tidy ; fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then wget http://launchpadlibrarian.net/174836660/iwyu_3.4-1_amd64.deb;
-  container/_languages/python/3.4.4/bin/psq-travis-container-exec container/_languages/os/Ubuntu.precise.None
-  --distro "Ubuntu" --release "precise" --show-output -- dpkg -i --force-depends iwyu_3.4-1_amd64.deb;
-  fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec
-  container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise"
-  --show-output -- ln -sf /usr/bin/clang++-3.6 /usr/bin/clang++ ;  fi
-- if [[ "${TRAVIS_OS_NAME}" == "linux" ]] ; then container/_languages/python/3.4.4/bin/psq-travis-container-exec
-  container/_languages/os/Ubuntu.precise.None --distro "Ubuntu" --release "precise"
-  --show-output -- ln -sf /usr/bin/clang-3.6 /usr/bin/clang ;  fi
-- if [[ "${TRAVIS_OS_NAME}" == "osx" ]] ; then container/_languages/python/3.5.1/bin/psq-travis-container-exec
-  --distro OSX --release 10.10 container/_languages/os/OSX.10.10.None -- brew link
-  llvm --force ; fi
 - polysquare_run check/conan/check.py ${COVERAGE} --cmake-namespace psq --generator
   "${CMAKE_GENERATOR}" --cmake-cache-variables "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" "CMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
 before_cache:
