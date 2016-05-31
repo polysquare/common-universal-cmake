@@ -6,15 +6,15 @@ cache:
 matrix:
   include:
   - os: linux
-    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" DEPLOY="1"
+    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" DEPLOY="1" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
   - os: linux
-    env: CMAKE_GENERATOR="Ninja" CMAKE_VERSION="latest"
+    env: CMAKE_GENERATOR="Ninja" CMAKE_VERSION="latest" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
   - os: linux
-    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="3.0"
+    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="3.0" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
   - os: linux
-    env: CMAKE_GENERATOR="Ninja" CMAKE_VERSION="3.0"
+    env: CMAKE_GENERATOR="Ninja" CMAKE_VERSION="3.0" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
   - os: linux
-    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage"
+    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
   - os: osx
     env: CMAKE_GENERATOR="Xcode" CMAKE_VERSION="latest"
 env:
@@ -50,7 +50,7 @@ script:
   --distro OSX --release 10.10 container/_languages/os/OSX.10.10.None -- brew link
   llvm --force ; fi
 - polysquare_run check/conan/check.py ${COVERAGE} --cmake-namespace psq --generator
-  "${CMAKE_GENERATOR}" --cmake-cache-variables "CMAKE_CXX_COMPILER=clang++" "CMAKE_C_COMPILER=clang"
+  "${CMAKE_GENERATOR}" --cmake-cache-variables "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" "CMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
 before_cache:
 - polysquare_cleanup
 after_success:
