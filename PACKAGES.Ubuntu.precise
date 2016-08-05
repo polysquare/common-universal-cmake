@@ -6,3 +6,6 @@ cppcheck
 google-mock
 vera++
 tcl8.5
+libboost-program-options1.58.0
+libboost-system1.58.0
+libboost-wave1.58.0
