@@ -39,7 +39,7 @@ function (psq_compiler_bootstrap)
                            ""
                            ${ARGN})
 
-    if (PSQ_COMPILER_STANDARD STREQUAL "")
+    if ("${PSQ_COMPILER_STANDARD}" STREQUAL "")
 
         set (PSQ_COMPILER_STANDARD "c++1y")
 
