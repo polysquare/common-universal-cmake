@@ -33,6 +33,18 @@ endfunction ()
 
 function (psq_compiler_bootstrap)
 
+    cmake_parse_arguments (PSQ_COMPILER
+                           ""
+                           "STANDARD"
+                           ""
+                           ${ARGN})
+
+    if (PSQ_COMPILER_STANDARD STREQUAL "")
+
+        set (PSQ_COMPILER_STANDARD "c++1y")
+
+    endif ()
+
     option (POLYSQUARE_USE_STRICT_COMPILER "Make compiler warnings errors" ON)
 
     set (PSQ_WERROR)
@@ -45,7 +57,7 @@ function (psq_compiler_bootstrap)
 
     endif ()
 
-    set (PSQ_CXX11 "-std=c++1y")
+    set (PSQ_CXX11 "-std=${PSQ_COMPILER_STANDARD}")
     set (PSQ_WALL "-Wall")
     set (PSQ_WFOUR "/W4")
     set (PSQ_WEXTRA "-Wextra")
@@ -101,11 +113,15 @@ endmacro ()
 macro (psq_coverage_bootstrap)
 
     include ("cmake/gcov-cmake/GCovUtilities")
-    gcov_get_compile_flags (PSQ_CB_CFLAGS)
+    gcov_get_compile_flags (PSQ_CB_CFLAGS PSQ_CB_LDFLAGS)
 
     get_property (PSQ_CB_PSQ_CFLAGS GLOBAL PROPERTY PSQ_CFLAGS)
     set_property (GLOBAL PROPERTY PSQ_CFLAGS
                   "${PSQ_CB_PSQ_CFLAGS} ${PSQ_CB_CFLAGS}")
+
+    get_property (PSQ_CB_PSQ_LDFLAGS GLOBAL PROPERTY PSQ_LDFLAGS)
+    set_property (GLOBAL PROPERTY PSQ_LDFLAGS
+                  "${PSQ_CB_PSQ_LDFLAGS} ${PSQ_CB_LDFLAGS}")
 
 endmacro ()
 
@@ -742,9 +758,11 @@ function (_psq_add_target_internal TARGET)
 
     get_property (PSQ_CFLAGS GLOBAL PROPERTY PSQ_CFLAGS)
     get_property (PSQ_CXXFLAGS GLOBAL PROPERTY PSQ_CXXFLAGS)
+    get_property (PSQ_LDFLAGS GLOBAL PROPERTY PSQ_LDFLAGS)
 
     set_target_properties ("${TARGET}" PROPERTIES
-                           COMPILE_FLAGS "${PSQ_CFLAGS} ${PSQ_CXXFLAGS}")
+                           COMPILE_FLAGS "${PSQ_CFLAGS} ${PSQ_CXXFLAGS}"
+                           LINK_FLAGS "${PSQ_LDFLAGS}")
 
     if (TARGET_LIBRARIES)
 

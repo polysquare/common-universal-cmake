@@ -21,8 +21,6 @@ def in_dir(directory):
         os.chdir(old_dir)
 
 
-GTEST_DEP = "gtest/master@smspillaz/gtest" if platform.system() != "Windows" else ""
-
 class CommonUniversalCMakeCMakeConan(ConanFile):
     name = "common-universal-cmake"
     version = os.environ.get("CONAN_VERSION_OVERRIDE", VERSION)
@@ -38,9 +36,12 @@ class CommonUniversalCMakeCMakeConan(ConanFile):
         "gcov-cmake/master@smspillaz/gcov-cmake",
         "iwyu-target-cmake/master@smspillaz/iwyu-target-cmake",
         "sanitize-target-cmake/master@smspillaz/sanitize-target-cmake",
-        "verapp-cmake/master@smspillaz/verapp-cmake",
-        GTEST_DEP
+        "verapp-cmake/master@smspillaz/verapp-cmake"
     )
+    options = {
+        "dev": [True, False]
+    }
+    default_options = "dev=False"
 
     url = "http://github.com/polysquare/common-universal-cmake"
     license = "MIT"
