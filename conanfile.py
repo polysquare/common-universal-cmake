@@ -41,6 +41,10 @@ class CommonUniversalCMakeCMakeConan(ConanFile):
         "verapp-cmake/master@smspillaz/verapp-cmake",
         GTEST_DEP
     )
+    options = {
+        "dev": [True, False]
+    }
+    default_options = "dev=False"
 
     url = "http://github.com/polysquare/common-universal-cmake"
     license = "MIT"
