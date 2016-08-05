@@ -33,6 +33,18 @@ endfunction ()
 
 function (psq_compiler_bootstrap)
 
+    cmake_parse_arguments (PSQ_COMPILER
+                           ""
+                           "STANDARD"
+                           ""
+                           ${ARGN})
+
+    if (PSQ_COMPILER_STANDARD STREQUAL "")
+
+        set (PSQ_COMPILER_STANDARD "c++1y")
+
+    endif ()
+
     option (POLYSQUARE_USE_STRICT_COMPILER "Make compiler warnings errors" ON)
 
     set (PSQ_WERROR)
@@ -45,7 +57,7 @@ function (psq_compiler_bootstrap)
 
     endif ()
 
-    set (PSQ_CXX11 "-std=c++1y")
+    set (PSQ_CXX11 "-std=${PSQ_COMPILER_STANDARD}")
     set (PSQ_WALL "-Wall")
     set (PSQ_WFOUR "/W4")
     set (PSQ_WEXTRA "-Wextra")
