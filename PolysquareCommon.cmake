@@ -57,6 +57,7 @@ function (psq_compiler_bootstrap)
 
     endif ()
 
+    message (STATUS "Using compiler standard ${PSQ_COMPILER_STANDARD}")
     set (PSQ_CXX11 "-std=${PSQ_COMPILER_STANDARD}")
     set (PSQ_WALL "-Wall")
     set (PSQ_WFOUR "/W4")
