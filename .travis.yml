@@ -18,6 +18,7 @@ matrix:
     env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage" CMAKE_C_COMPILER="clang-3.8" CMAKE_CXX_COMPILER="clang++-3.8"
   - os: osx
     env: CMAKE_GENERATOR="Xcode" CMAKE_VERSION="latest"
+    compiler: clang
 env:
   global:
   - secure: JEjMUojp81OtlxeljKhbEg96Z1gRm2G4ToDeO3BmNZ9iAbFEArr6ZUSKPJzv56kdV1mkgh0EQzOo4BnCO19A8+WiRTfi1+ZdLvd7p+lcGx8iJctZtwhlfmaDR87MXFZYP3LvKASwa2VTi/jqmtsNYes1/+ti5wfwEWbMICaPZ90=
