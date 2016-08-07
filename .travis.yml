@@ -29,7 +29,6 @@ addons:
     packages:
     - python3.4-dev
 install:
-- if [[ "${TRAVIS_OS_NAME}" == "osx" ]] ; then printf "cppcheck\nninja\nvera++\niwyu\n" > PACKAGES.OSX.10.10 ; fi
 - eval $(curl -LSs --retry 100 --connect-timeout 3 public-travis-scripts.polysquare.org/bootstrap.py
   | python /dev/stdin -d container -s setup/conan/setup.py -e bash -p /dev/stdout
   --cmake-version ${CMAKE_VERSION})
