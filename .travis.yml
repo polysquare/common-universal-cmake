@@ -6,15 +6,15 @@ cache:
 matrix:
   include:
   - os: linux
-    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" DEPLOY="1" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
+    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" DEPLOY="1" CMAKE_C_COMPILER="clang-3.8" CMAKE_CXX_COMPILER="clang++-3.8"
   - os: linux
-    env: CMAKE_GENERATOR="Ninja" CMAKE_VERSION="latest" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
+    env: CMAKE_GENERATOR="Ninja" CMAKE_VERSION="latest" CMAKE_C_COMPILER="clang-3.8" CMAKE_CXX_COMPILER="clang++-3.8"
   - os: linux
-    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="3.0" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
+    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="3.0" CMAKE_C_COMPILER="clang-3.8" CMAKE_CXX_COMPILER="clang++-3.8"
   - os: linux
-    env: CMAKE_GENERATOR="Ninja" CMAKE_VERSION="3.0" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
+    env: CMAKE_GENERATOR="Ninja" CMAKE_VERSION="3.0" CMAKE_C_COMPILER="clang-3.8" CMAKE_CXX_COMPILER="clang++-3.8"
   - os: linux
-    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage" CMAKE_C_COMPILER="clang-3.6" CMAKE_CXX_COMPILER="clang++-3.6"
+    env: CMAKE_GENERATOR="Unix Makefiles" CMAKE_VERSION="latest" COVERAGE="--use-cmake-coverage" CMAKE_C_COMPILER="clang-3.8" CMAKE_CXX_COMPILER="clang++-3.8"
   - os: osx
     env: CMAKE_GENERATOR="Xcode" CMAKE_VERSION="latest"
 env:
