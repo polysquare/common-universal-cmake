@@ -2511,8 +2511,8 @@ function (psq_test_pch_targets_generated_after_cotire_bootstrap)
                                                  "${SOURCE_DIR}")
         if (XCODE)
 
-            cmake_unit_assert_that (TARGET item_has_property_with_value
-                                    "library"
+            cmake_unit_assert_that ("library" item_has_property_with_value
+                                    TARGET
                                     XCODE_ATTRIBUTE_GCC_PRECOMPILE_PREFIX_HEADER
                                     STRING
                                     EQUAL
