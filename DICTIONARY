@@ -29,6 +29,7 @@ isystem
 library_asan
 matchers
 memory
+POLYSQUARE
 polysquare
 polysquare's
 precompiled

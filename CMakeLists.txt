@@ -15,8 +15,7 @@ cmake_minimum_required (VERSION 2.8)
 
 set (_CURRENT_LIST_FILE "${CMAKE_CURRENT_LIST_FILE}")
 
-include ("cmake/cmake-unit/CMakeUnitRunner")
-include ("cmake/cmake-unit/CMakeUnit")
+include ("cmake/cmake-module-common/Common" OPTIONAL)
 include (PolysquareCommon)
 
 if ("${_CMAKE_UNIT_PHASE}" STREQUAL "PRECONFIGURE") # NOLINT:access/private_var
@@ -2512,8 +2511,8 @@ function (psq_test_pch_targets_generated_after_cotire_bootstrap)
                                                  "${SOURCE_DIR}")
         if (XCODE)
 
-            cmake_unit_assert_that (TARGET item_has_property_with_value
-                                    "library"
+            cmake_unit_assert_that ("library" item_has_property_with_value
+                                    TARGET
                                     XCODE_ATTRIBUTE_GCC_PRECOMPILE_PREFIX_HEADER
                                     STRING
                                     EQUAL
@@ -3079,12 +3078,17 @@ function (psq_test_verapp_with_polysquare_profile_run_on_target_with_rules)
 
 endfunction ()
 
-cmake_unit_init (NAMESPACE psq
-                 COVERAGE_FILES
-                 "${CMAKE_CURRENT_LIST_DIR}/PolysquareCommon.cmake")
+set (CMAKE_FILES
+     "${CMAKE_CURRENT_LIST_DIR}/PolysquareCommon.cmake"
+     "${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt")
+set (MARKDOWN_FILES
+     "${CMAKE_CURRENT_LIST_DIR}/LICENCE.md"
+     "${CMAKE_CURRENT_LIST_DIR}/README.md")
 
-if (BIICODE)
+if (COMMAND cmake_module_add_common_targets)
 
-    add_bii_targets ()
+    cmake_module_add_common_targets (NAMESPACE "psq"
+                                     CMAKE_FILES ${CMAKE_FILES}
+                                     DOCUMENTATION_FILES ${MARKDOWN_FILES})
 
 endif ()

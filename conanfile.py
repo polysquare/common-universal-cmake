@@ -30,7 +30,6 @@ class CommonUniversalCMakeCMakeConan(ConanFile):
         "clang-tidy-target-cmake/master@smspillaz/clang-tidy-target-cmake",
         "cmake-include-guard/master@smspillaz/cmake-include-guard",
         "cmake-forward-arguments/master@smspillaz/cmake-forward-arguments",
-        "cmake-unit/master@smspillaz/cmake-unit",
         "cppcheck-target-cmake/master@smspillaz/cppcheck-target-cmake",
         "gmock-cmake/master@smspillaz/gmock-cmake",
         "gcov-cmake/master@smspillaz/gcov-cmake",
@@ -45,6 +44,14 @@ class CommonUniversalCMakeCMakeConan(ConanFile):
 
     url = "http://github.com/polysquare/common-universal-cmake"
     license = "MIT"
+    options = {
+        "dev": [True, False]
+    }
+    default_options = "dev=False"
+
+    def requirements(self):
+        if self.options.dev:
+            self.requires("cmake-module-common/master@smspillaz/cmake-module-common")
 
     def source(self):
         zip_name = "common-universal-cmake.zip"
